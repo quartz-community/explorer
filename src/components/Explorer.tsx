@@ -638,6 +638,42 @@ document.addEventListener("nav", async (e) => {
       cleanupHandlers.push(() => icon.removeEventListener("click", iconClickHandler));
     }
     
+    const folderButtons = explorer.getElementsByClassName("folder-button");
+    for (const button of folderButtons) {
+      const buttonClickHandler = function(evt) {
+        const folderContainer = this.closest(".folder-container");
+        if (!folderContainer) return;
+        
+        const folderBehavior = explorer.dataset.behavior || "collapse";
+        const childFolderContainer = folderContainer.nextElementSibling;
+        const folderPath = folderContainer.dataset.folderpath;
+        
+        if (folderBehavior === "link") {
+          if (folderPath) {
+            window.location.href = "/" + folderPath;
+          }
+        } else {
+          evt.stopPropagation();
+          if (!childFolderContainer) return;
+          
+          childFolderContainer.classList.toggle("open");
+          const isCollapsed = !childFolderContainer.classList.contains("open");
+          
+          const savedState = JSON.parse(localStorage.getItem("fileTree") || "[]");
+          const existingIndex = savedState.findIndex(item => item.path === folderPath);
+          
+          if (existingIndex >= 0) {
+            savedState[existingIndex].collapsed = isCollapsed;
+          } else {
+            savedState.push({ path: folderPath, collapsed: isCollapsed });
+          }
+          localStorage.setItem("fileTree", JSON.stringify(savedState));
+        }
+      };
+      button.addEventListener("click", buttonClickHandler);
+      cleanupHandlers.push(() => button.removeEventListener("click", buttonClickHandler));
+    }
+    
     if (typeof window !== "undefined" && window.addCleanup) {
       window.addCleanup(() => cleanupHandlers.forEach(fn => fn()));
     }

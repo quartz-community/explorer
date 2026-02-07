@@ -1,37 +1,28 @@
 import type { VNode, JSX } from "preact";
 import OverflowListFactory from "./OverflowList";
 
-// Local type definitions to match Quartz interfaces
-// These mirror the types from @jackyzha0/quartz for build-time checking
-
-type QuartzPluginData = {
-  slug: string;
-  title: string;
-  filePath: string;
-  [key: string]: any;
-};
-
-type BuildCtx = {
-  cfg: any;
-  allFiles: any[];
-  [key: string]: any;
-};
-
-type StaticResources = {
-  css: Array<{ content: string }>;
-  js: Array<{ src?: string; content?: string; loadTime: string; moduleType?: string }>;
-};
-
 type StringResource = string | undefined;
 
+interface FileTrieNode {
+  isFolder: boolean;
+  children: FileTrieNode[];
+  data: any;
+  slugSegment: string;
+  displayName: string;
+  slug: string;
+  filter(filterFn: (node: FileTrieNode) => boolean): void;
+  map(mapFn: (node: FileTrieNode) => void): void;
+  sort(sortFn: (a: FileTrieNode, b: FileTrieNode) => number): void;
+}
+
 export type QuartzComponentProps = {
-  ctx: BuildCtx;
-  externalResources: StaticResources;
-  fileData: QuartzPluginData;
+  ctx: any;
+  externalResources: any;
+  fileData: any;
   cfg: any;
-  children: any[];
+  children: any;
   tree: any;
-  allFiles: any[];
+  allFiles: any;
   displayClass?: "mobile-only" | "desktop-only";
 } & JSX.IntrinsicAttributes & {
     [key: string]: any;
@@ -46,19 +37,6 @@ export type QuartzComponent = ((props: QuartzComponentProps) => VNode) & {
 export type QuartzComponentConstructor<Options extends object | undefined = undefined> = (
   opts: Options,
 ) => QuartzComponent;
-
-// Simplified FileTrieNode interface for the external component
-interface FileTrieNode {
-  isFolder: boolean;
-  children: FileTrieNode[];
-  data: QuartzPluginData | null;
-  slugSegment: string;
-  displayName: string;
-  slug: string;
-  filter(filterFn: (node: FileTrieNode) => boolean): void;
-  map(mapFn: (node: FileTrieNode) => void): void;
-  sort(sortFn: (a: FileTrieNode, b: FileTrieNode) => number): void;
-}
 
 export function concatenateResources(...resources: (string | undefined)[]): string {
   return resources.filter((r): r is string => !!r).join("\n");

@@ -21,7 +21,7 @@ type GlobalConfiguration = {
 type QuartzConfig = {
   configuration: GlobalConfiguration;
   plugins: any;
-  externalPlugins?: string[];
+  externalPlugins?: any[];
 };
 
 type QuartzPluginData = {

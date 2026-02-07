@@ -5,9 +5,23 @@ import OverflowListFactory from "./OverflowList";
 // These mirror the types from @jackyzha0/quartz for build-time checking
 
 type GlobalConfiguration = {
-  locale: string;
+  pageTitle: string;
+  pageTitleSuffix?: string;
+  enableSPA: boolean;
+  enablePopovers: boolean;
+  analytics: any;
+  ignorePatterns: string[];
+  defaultDateType: string;
   baseUrl?: string;
+  theme: any;
+  locale: string;
   [key: string]: any;
+};
+
+type QuartzConfig = {
+  configuration: GlobalConfiguration;
+  plugins: any;
+  externalPlugins?: string[];
 };
 
 type QuartzPluginData = {
@@ -18,7 +32,7 @@ type QuartzPluginData = {
 };
 
 type BuildCtx = {
-  cfg: GlobalConfiguration;
+  cfg: QuartzConfig;
   allFiles: QuartzPluginData[];
   [key: string]: any;
 };

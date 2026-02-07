@@ -53,7 +53,7 @@ export default config;
 
 ```typescript
 // quartz.layout.ts
-import { Explorer } from "@quartz-community/explorer/components";
+import { Explorer } from "@quartz-community/explorer";
 
 // Create the Explorer component once and reuse it across layouts
 const explorerComponent = Explorer({

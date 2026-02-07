@@ -710,7 +710,42 @@ const Explorer: QuartzComponentConstructor = (userOpts?: Partial<ExplorerOptions
 
   const ExplorerComponent: QuartzComponent = ({ cfg, displayClass }: QuartzComponentProps) => {
     const id = `explorer-${numExplorers++}`;
-    const title = opts.title ?? "Explorer";
+    const locale = cfg?.locale ?? "en-US";
+
+    const translations: Record<string, string> = {
+      "ar-SA": "المستعرض",
+      "ca-ES": "Explorador",
+      "cs-CZ": "Procházet",
+      "de-DE": "Explorer",
+      "en-GB": "Explorer",
+      "en-US": "Explorer",
+      "es-ES": "Explorador",
+      "fa-IR": "مطالب",
+      "fi-FI": "Selain",
+      "fr-FR": "Explorateur",
+      "he-IL": "סייר",
+      "hu-HU": "Fájlböngésző",
+      "id-ID": "Penjelajah",
+      "it-IT": "Esplora",
+      "ja-JP": "エクスプローラー",
+      "kk-KZ": "Зерттеуші",
+      "ko-KR": "탐색기",
+      "lt-LT": "Naršyklė",
+      "nb-NO": "Utforsker",
+      "nl-NL": "Verkenner",
+      "pl-PL": "Przeglądaj",
+      "pt-BR": "Explorador",
+      "ro-RO": "Explorator",
+      "ru-RU": "Проводник",
+      "th-TH": "รายการหน้า",
+      "tr-TR": "Gezgin",
+      "uk-UA": "Провідник",
+      "vi-VN": "Nội dung",
+      "zh-CN": "探索",
+      "zh-TW": "探索",
+    };
+
+    const title = opts.title ?? translations[locale] ?? "Explorer";
 
     return (
       <div

@@ -1,165 +1,135 @@
-# Quartz Community Plugin Template
+# @quartz-community/explorer
 
-Production-ready template for building, testing, and publishing Quartz community plugins. It mirrors
-Quartz's native plugin patterns and uses a factory-function API similar to Astro integrations:
-plugins are created by functions that return objects with `name` and lifecycle hooks.
+The Explorer component for Quartz - navigate your digital garden with an interactive file tree.
 
-## Highlights
+This is the first first-party community plugin for Quartz, demonstrating the new plugin system that allows components to be distributed as npm packages.
 
-- ✅ Quartz-compatible transformer/filter/emitter examples
-- ✅ TypeScript-first with exported types for consumers
-- ✅ `tsup` bundling + declaration output
-- ✅ Vitest testing setup with example tests
-- ✅ Linting/formatting with ESLint + Prettier
-- ✅ CI workflow for checks and npm publishing
-- ✅ Demonstrates CSS/JS resource injection and remark/rehype usage
+## Features
 
-## Getting started
+- 📁 Interactive folder tree with collapse/expand functionality
+- 📱 Mobile-friendly slide-out navigation
+- 💾 Persistent state (remembers open/closed folders)
+- 🔗 Configurable folder click behavior (link or collapse)
+- ⚡ Built-in search and overflow handling
+
+## Installation
+
+### From GitHub (Recommended for now)
 
 ```bash
-npm install
-npm run build
+npm install github:quartz-community/explorer --legacy-peer-deps
 ```
 
-## Usage in Quartz
+### From NPM (when published)
 
-Install your plugin into a Quartz site and register it in `quartz.config.ts`:
+```bash
+npm install @quartz-community/explorer
+```
 
-```ts
-import {
-  ExampleTransformer,
-  ExampleFilter,
-  ExampleEmitter,
-} from "@quartz-community/plugin-template";
+## Usage
 
-export default {
+### 1. Configure in quartz.config.ts
+
+Add the plugin to your externalPlugins array:
+
+```typescript
+// quartz.config.ts
+import { QuartzConfig } from "./quartz/cfg";
+
+const config: QuartzConfig = {
   configuration: {
-    pageTitle: "My Garden",
+    // ... your configuration
   },
   plugins: {
-    transformers: [ExampleTransformer({ highlightToken: "==" })],
-    filters: [ExampleFilter({ allowDrafts: false })],
-    emitters: [ExampleEmitter({ manifestSlug: "plugin-manifest" })],
+    // ... your existing plugins
   },
+  externalPlugins: ["@quartz-community/explorer"],
+};
+
+export default config;
+```
+
+### 2. Import in your layout
+
+```typescript
+// quartz.layout.ts
+import { Explorer } from "@quartz-community/explorer/components";
+
+// Create the Explorer component once and reuse it across layouts
+const explorerComponent = Explorer({
+  title: "Explorer",
+  folderDefaultState: "collapsed",
+  folderClickBehavior: "link",
+  useSavedState: true,
+});
+
+export const defaultContentPageLayout: PageLayout = {
+  left: [
+    explorerComponent,
+    // ... other components
+  ],
+  right: [
+    // ... other components
+  ],
+};
+
+export const defaultListPageLayout: PageLayout = {
+  left: [
+    explorerComponent, // Reuse the same component instance
+    // ... other components
+  ],
+  right: [
+    // ... other components
+  ],
 };
 ```
 
-## Plugin factory pattern (Astro-style)
+## Configuration Options
 
-Quartz plugins are factory functions that return an object with a `name` and hook implementations.
-This mirrors Astro's integration pattern (a function returning an object of hooks), which makes
-composition and configuration explicit and predictable.
+```typescript
+interface ExplorerOptions {
+  /** Title displayed above the explorer */
+  title?: string;
 
-```ts
-import type { QuartzTransformerPlugin } from "@jackyzha0/quartz/plugins/types";
+  /** Default state for folders: "collapsed" or "open" */
+  folderDefaultState: "collapsed" | "open";
 
-export const MyTransformer: QuartzTransformerPlugin<{ enabled: boolean }> = (opts) => {
-  return {
-    name: "MyTransformer",
-    markdownPlugins() {
-      return [];
-    },
-  };
-};
+  /** Behavior when clicking folders: "collapse" to toggle, "link" to navigate */
+  folderClickBehavior: "collapse" | "link";
+
+  /** Whether to persist folder state in localStorage */
+  useSavedState: boolean;
+
+  /** Custom sort function for entries */
+  sortFn?: (a: FileTrieNode, b: FileTrieNode) => number;
+
+  /** Custom filter function for entries */
+  filterFn?: (node: FileTrieNode) => boolean;
+
+  /** Custom map function for transforming entries */
+  mapFn?: (node: FileTrieNode) => void;
+
+  /** Order in which to apply filter, map, and sort */
+  order?: Array<"filter" | "map" | "sort">;
+}
 ```
 
-## Examples included
+## Default Behavior
 
-### Transformer
+By default, the Explorer:
 
-`ExampleTransformer` shows how to:
+- Shows folders in a collapsed state
+- Opens folders when clicked (navigates to index page)
+- Saves folder states between sessions
+- Excludes the "tags" folder from the tree
+- Sorts folders first, then files alphabetically
 
-- apply a custom remark plugin
-- run a rehype plugin
-- inject CSS/JS resources
-- perform a text transform hook
+## Development
 
-```ts
-import { ExampleTransformer } from "@quartz-community/plugin-template";
+This is a first-party Quartz community plugin. It serves as both:
 
-ExampleTransformer({
-  highlightToken: "==",
-  headingClass: "example-plugin-heading",
-  enableGfm: true,
-  addHeadingSlugs: true,
-});
-```
-
-The transformer uses a custom remark plugin to convert `==highlight==` into bold text and a rehype
-plugin to attach a class to all headings. It also injects a small inline CSS/JS snippet.
-
-### Filter
-
-`ExampleFilter` demonstrates frontmatter-driven filtering:
-
-```ts
-ExampleFilter({
-  allowDrafts: false,
-  excludeTags: ["private", "wip"],
-  excludePathPrefixes: ["_drafts/", "_private/"],
-});
-```
-
-### Emitter
-
-`ExampleEmitter` emits a JSON manifest of all pages:
-
-```ts
-ExampleEmitter({
-  manifestSlug: "plugin-manifest",
-  includeFrontmatter: true,
-  metadata: { project: "My Garden" },
-  transformManifest: (json) => json.replace("My Garden", "Quartz"),
-});
-```
-
-## API reference
-
-### `ExampleTransformer(options)`
-
-| Option            | Type      | Default                    | Description                   |
-| ----------------- | --------- | -------------------------- | ----------------------------- |
-| `highlightToken`  | `string`  | `"=="`                     | Token used to highlight text. |
-| `headingClass`    | `string`  | `"example-plugin-heading"` | Class added to headings.      |
-| `enableGfm`       | `boolean` | `true`                     | Enables `remark-gfm`.         |
-| `addHeadingSlugs` | `boolean` | `true`                     | Enables `rehype-slug`.        |
-
-### `ExampleFilter(options)`
-
-| Option                | Type       | Default                     | Description               |
-| --------------------- | ---------- | --------------------------- | ------------------------- |
-| `allowDrafts`         | `boolean`  | `false`                     | Publish draft pages.      |
-| `excludeTags`         | `string[]` | `["private"]`               | Tags to exclude.          |
-| `excludePathPrefixes` | `string[]` | `["_drafts/", "_private/"]` | Path prefixes to exclude. |
-
-### `ExampleEmitter(options)`
-
-| Option                | Type                       | Default                                   | Description                               |
-| --------------------- | -------------------------- | ----------------------------------------- | ----------------------------------------- |
-| `manifestSlug`        | `string`                   | `"plugin-manifest"`                       | Output filename (without extension).      |
-| `includeFrontmatter`  | `boolean`                  | `true`                                    | Include frontmatter in output.            |
-| `metadata`            | `Record<string, unknown>`  | `{ generator: "Quartz Plugin Template" }` | Extra metadata in manifest.               |
-| `transformManifest`   | `(json: string) => string` | `undefined`                               | Custom transformer for emitted JSON.      |
-| `manifestScriptClass` | `string`                   | `undefined`                               | Optional CSS class if rendered into HTML. |
-
-## Testing
-
-```bash
-npm test
-```
-
-## Build and lint
-
-```bash
-npm run build
-npm run lint
-npm run format
-```
-
-## Publishing
-
-Tags matching `v*` trigger the GitHub Actions publish workflow. Ensure `NPM_TOKEN` is set in the
-repository secrets.
+1. A production-ready Explorer component
+2. A reference implementation for building Quartz community plugins
 
 ## License
 

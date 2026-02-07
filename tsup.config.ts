@@ -7,7 +7,7 @@ export default defineConfig({
     "components/index": "src/components/index.ts",
   },
   format: ["esm"],
-  dts: true,
+  dts: false,
   sourcemap: true,
   clean: true,
   treeshake: true,
@@ -18,4 +18,28 @@ export default defineConfig({
     options.jsx = "automatic";
     options.jsxImportSource = "preact";
   },
+  esbuildPlugins: [
+    {
+      name: "text-loader",
+      setup(build) {
+        build.onLoad({ filter: /\.scss$/ }, async (args) => {
+          const fs = await import("fs");
+          const text = await fs.promises.readFile(args.path, "utf8");
+          return {
+            contents: text,
+            loader: "text",
+          };
+        });
+
+        build.onLoad({ filter: /\.inline\.ts$/ }, async (args) => {
+          const fs = await import("fs");
+          const text = await fs.promises.readFile(args.path, "utf8");
+          return {
+            contents: text,
+            loader: "text",
+          };
+        });
+      },
+    },
+  ],
 });

@@ -1,11 +1,6 @@
-export { ExampleTransformer } from "./transformer";
-export { ExampleFilter } from "./filter";
-export { ExampleEmitter } from "./emitter";
-export { ExampleComponent } from "./components/ExampleComponent";
+// Component-only plugin - Explorer for Quartz
+export { Explorer } from "./components/Explorer";
+export type { ExplorerOptions } from "./components/Explorer";
 
-export type {
-  ExampleTransformerOptions,
-  ExampleFilterOptions,
-  ExampleEmitterOptions,
-  ExampleComponentOptions,
-} from "./types";
+// Manifest for plugin discovery
+export { manifest } from "./manifest";

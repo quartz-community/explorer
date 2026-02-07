@@ -4,26 +4,6 @@ import OverflowListFactory from "./OverflowList";
 // Local type definitions to match Quartz interfaces
 // These mirror the types from @jackyzha0/quartz for build-time checking
 
-type GlobalConfiguration = {
-  pageTitle: string;
-  pageTitleSuffix?: string;
-  enableSPA: boolean;
-  enablePopovers: boolean;
-  analytics: any;
-  ignorePatterns: string[];
-  defaultDateType: string;
-  baseUrl?: string;
-  theme: any;
-  locale: string;
-  [key: string]: any;
-};
-
-type QuartzConfig = {
-  configuration: GlobalConfiguration;
-  plugins: any;
-  externalPlugins?: any[];
-};
-
 type QuartzPluginData = {
   slug: string;
   title: string;
@@ -32,8 +12,8 @@ type QuartzPluginData = {
 };
 
 type BuildCtx = {
-  cfg: QuartzConfig;
-  allFiles: QuartzPluginData[];
+  cfg: any;
+  allFiles: any[];
   [key: string]: any;
 };
 
@@ -48,10 +28,10 @@ export type QuartzComponentProps = {
   ctx: BuildCtx;
   externalResources: StaticResources;
   fileData: QuartzPluginData;
-  cfg: GlobalConfiguration;
+  cfg: any;
   children: any[];
   tree: any;
-  allFiles: QuartzPluginData[];
+  allFiles: any[];
   displayClass?: "mobile-only" | "desktop-only";
 } & JSX.IntrinsicAttributes & {
     [key: string]: any;

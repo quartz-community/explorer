@@ -7,7 +7,7 @@ export default defineConfig({
     "components/index": "src/components/index.ts",
   },
   format: ["esm"],
-  dts: false,
+  dts: true,
   sourcemap: true,
   clean: true,
   treeshake: true,

@@ -1,4 +1,20 @@
-import type { PluginManifest } from "@jackyzha0/quartz/plugins/loader/types";
+type PluginManifest = {
+  name: string;
+  displayName: string;
+  description: string;
+  version: string;
+  category: string;
+  quartzVersion: string;
+  components: Record<
+    string,
+    {
+      name: string;
+      displayName: string;
+      description: string;
+      version: string;
+    }
+  >;
+};
 
 export const manifest: PluginManifest = {
   name: "@quartz-community/explorer",

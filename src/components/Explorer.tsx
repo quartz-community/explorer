@@ -1,4 +1,6 @@
 import type {
+  ExplorerOptions,
+  FileTrieNode,
   QuartzComponent,
   QuartzComponentConstructor,
   QuartzComponentProps,
@@ -10,50 +12,40 @@ import style from "./styles/explorer.scss";
 // @ts-ignore
 import script from "./scripts/explorer.inline.ts";
 
-export interface FileTrieNode {
-  slugSegments: string[];
-  data: any | null;
-  children: FileTrieNode[];
-  isFolder: boolean;
-  fileSegmentHint?: string;
-}
+const getSlugSegment = (node: FileTrieNode) => {
+  const withSlugSegment = node as { slugSegment?: string; slugSegments?: string[] };
+  if (withSlugSegment.slugSegment) {
+    return withSlugSegment.slugSegment;
+  }
+  return withSlugSegment.slugSegments?.[withSlugSegment.slugSegments.length - 1] ?? "";
+};
 
-export interface ExplorerOptions {
-  title?: string;
-  folderDefaultState: "collapsed" | "open";
-  folderClickBehavior: "collapse" | "link";
-  useSavedState: boolean;
-  sortFn?: (a: FileTrieNode, b: FileTrieNode) => number;
-  filterFn?: (node: FileTrieNode) => boolean;
-  mapFn?: (node: FileTrieNode) => void;
-  order?: Array<"filter" | "map" | "sort">;
-}
-
-type OrderEntries = "filter" | "map" | "sort";
+const getDisplayName = (node: FileTrieNode) => {
+  const withDisplayName = node as { displayName?: string };
+  return withDisplayName.displayName ?? getSlugSegment(node);
+};
 
 const defaultOptions: ExplorerOptions = {
   folderDefaultState: "collapsed",
   folderClickBehavior: "link",
   useSavedState: true,
-  mapFn: (node) => {
+  mapFn: (node: FileTrieNode) => {
     return node;
   },
-  sortFn: (a, b) => {
-    const aName = a.slugSegments[a.slugSegments.length - 1] || "";
-    const bName = b.slugSegments[b.slugSegments.length - 1] || "";
+  sortFn: (a: FileTrieNode, b: FileTrieNode) => {
     if ((!a.isFolder && !b.isFolder) || (a.isFolder && b.isFolder)) {
-      return aName.localeCompare(bName, undefined, {
+      return getDisplayName(a).localeCompare(getDisplayName(b), undefined, {
         numeric: true,
         sensitivity: "base",
       });
     }
+
     if (!a.isFolder && b.isFolder) {
       return 1;
-    } else {
-      return -1;
     }
+    return -1;
   },
-  filterFn: (node) => node.slugSegments[0] !== "tags",
+  filterFn: (node: FileTrieNode) => getSlugSegment(node) !== "tags",
   order: ["filter", "map", "sort"],
 };
 
@@ -67,9 +59,12 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
   const opts: ExplorerOptions = { ...defaultOptions, ...userOpts };
   const { OverflowList, overflowListAfterDOMLoaded } = OverflowListFactory();
 
-  const ExplorerComponent: QuartzComponent = ({ cfg, displayClass }: QuartzComponentProps) => {
+  const ExplorerComponent: QuartzComponent = (props: QuartzComponentProps) => {
+    const { cfg } = props;
+    const displayClass = (props as { displayClass?: "mobile-only" | "desktop-only" }).displayClass;
     const id = `explorer-${numExplorers++}`;
     const locale = cfg?.locale ?? "en-US";
+
     const title = opts.title ?? i18n(locale).components.explorer.title;
 
     return (
@@ -78,36 +73,46 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
         data-behavior={opts.folderClickBehavior}
         data-collapsed={opts.folderDefaultState}
         data-savestate={opts.useSavedState}
-        id={id}
+        data-data-fns={JSON.stringify({
+          order: opts.order,
+          sortFn: opts.sortFn?.toString(),
+          filterFn: opts.filterFn?.toString(),
+          mapFn: opts.mapFn?.toString(),
+        })}
       >
         <button
-          class={classNames("mobile-explorer", opts.folderDefaultState === "open" ? "collapsed" : null)}
+          type="button"
+          class="explorer-toggle mobile-explorer hide-until-loaded"
+          data-mobile={true}
+          aria-controls={id}
         >
-          <h2>{title}</h2>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
             height="24"
             viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
-            class="fold"
+            class="lucide-menu"
           >
-            <polyline points="6 9 12 15 18 9"></polyline>
+            <line x1="4" x2="20" y1="12" y2="12" />
+            <line x1="4" x2="20" y1="6" y2="6" />
+            <line x1="4" x2="20" y1="18" y2="18" />
           </svg>
         </button>
         <button
-          class={classNames("desktop-explorer", opts.folderDefaultState === "open" ? null : "collapsed")}
+          type="button"
+          class="title-button explorer-toggle desktop-explorer"
+          data-mobile={false}
+          aria-expanded={true}
         >
           <h2>{title}</h2>
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            viewBox="5 8 14 8"
             fill="none"
             stroke="currentColor"
             stroke-width="2"
@@ -118,18 +123,47 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
             <polyline points="6 9 12 15 18 9"></polyline>
           </svg>
         </button>
-        <div class={classNames("explorer-content", opts.folderDefaultState === "collapsed" ? "hide-until-loaded" : null)}>
-          <OverflowList />
+        <div id={id} class="explorer-content" aria-expanded={false} role="group">
+          <OverflowList class="explorer-ul" />
         </div>
+        <template id="template-file">
+          <li>
+            <a href="#"></a>
+          </li>
+        </template>
+        <template id="template-folder">
+          <li>
+            <div class="folder-container">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                viewBox="5 8 14 8"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="folder-icon"
+              >
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+              <div>
+                <button class="folder-button">
+                  <span class="folder-title"></span>
+                </button>
+              </div>
+            </div>
+            <div class="folder-outer">
+              <ul class="content"></ul>
+            </div>
+          </li>
+        </template>
       </div>
     );
   };
 
   ExplorerComponent.css = style;
-  ExplorerComponent.afterDOMLoaded = concatenateResources(
-    script,
-    overflowListAfterDOMLoaded,
-  );
-
+  ExplorerComponent.afterDOMLoaded = concatenateResources(script, overflowListAfterDOMLoaded);
   return ExplorerComponent;
 }) satisfies QuartzComponentConstructor;

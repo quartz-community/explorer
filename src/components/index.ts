@@ -1,2 +1,2 @@
-export { Explorer } from "./Explorer";
-export type { ExplorerOptions } from "./Explorer";
+export { default as Explorer } from "./Explorer";
+export type { ExplorerOptions, FileTrieNode } from "./Explorer";

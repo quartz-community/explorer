@@ -1,6 +1,4 @@
 import type {
-  ExplorerOptions,
-  FileTrieNode,
   QuartzComponent,
   QuartzComponentConstructor,
   QuartzComponentProps,
@@ -11,6 +9,26 @@ import { i18n } from "../i18n";
 import style from "./styles/explorer.scss";
 // @ts-ignore
 import script from "./scripts/explorer.inline.ts";
+
+interface FileTrieNode {
+  slugSegment?: string;
+  slugSegments?: string[];
+  displayName?: string;
+  isFolder: boolean;
+  data: any | null;
+  children: FileTrieNode[];
+}
+
+interface ExplorerOptions {
+  title?: string;
+  folderDefaultState: "collapsed" | "open";
+  folderClickBehavior: "collapse" | "link";
+  useSavedState: boolean;
+  sortFn?: (a: FileTrieNode, b: FileTrieNode) => number;
+  filterFn?: (node: FileTrieNode) => boolean;
+  mapFn?: (node: FileTrieNode) => FileTrieNode;
+  order?: Array<"filter" | "map" | "sort">;
+}
 
 const getSlugSegment = (node: FileTrieNode) => {
   const withSlugSegment = node as { slugSegment?: string; slugSegments?: string[] };

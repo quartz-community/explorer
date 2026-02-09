@@ -64,8 +64,8 @@
     }
   },
   "dependencies": {
-    "@quartz-community/utils": "github:quartz-community/utils",
-    "@quartz-community/types": "github:quartz-community/types"
+    "@quartz-community/types": "github:quartz-community/types",
+    "@quartz-community/utils": "github:quartz-community/utils"
   },
   "devDependencies": {
     "@types/hast": "^3.0.4",

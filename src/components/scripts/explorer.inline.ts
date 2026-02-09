@@ -182,7 +182,7 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
       const folderLink = document.createElement("a");
       folderLink.className = folderButton.className;
       const folderHref = simplifySlug(node.slug);
-      folderLink.href = folderHref || ".";
+      folderLink.href = "/" + (folderHref || "");
       if (folderTitle) {
         folderLink.appendChild(folderTitle);
       } else {
@@ -217,8 +217,7 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
     const clone = fileTemplate.content.cloneNode(true);
     const link = clone.querySelector("a");
     if (link) {
-      // Use relative path for consistent navigation from any page
-      link.href = node.data.slug;
+      link.href = "/" + node.data.slug;
       link.textContent = node.displayName || node.slugSegment;
       if (node.data.slug === currentSlug) {
         link.classList.add("active");

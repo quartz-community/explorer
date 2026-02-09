@@ -30,19 +30,6 @@ interface ExplorerOptions {
   order?: Array<"filter" | "map" | "sort">;
 }
 
-const getSlugSegment = (node: FileTrieNode) => {
-  const withSlugSegment = node as { slugSegment?: string; slugSegments?: string[] };
-  if (withSlugSegment.slugSegment) {
-    return withSlugSegment.slugSegment;
-  }
-  return withSlugSegment.slugSegments?.[withSlugSegment.slugSegments.length - 1] ?? "";
-};
-
-const getDisplayName = (node: FileTrieNode) => {
-  const withDisplayName = node as { displayName?: string };
-  return withDisplayName.displayName ?? getSlugSegment(node);
-};
-
 const defaultOptions: ExplorerOptions = {
   folderDefaultState: "collapsed",
   folderClickBehavior: "link",
@@ -52,7 +39,7 @@ const defaultOptions: ExplorerOptions = {
   },
   sortFn: (a: FileTrieNode, b: FileTrieNode) => {
     if ((!a.isFolder && !b.isFolder) || (a.isFolder && b.isFolder)) {
-      return getDisplayName(a).localeCompare(getDisplayName(b), undefined, {
+      return (a.displayName || "").localeCompare(b.displayName || "", undefined, {
         numeric: true,
         sensitivity: "base",
       });
@@ -63,7 +50,7 @@ const defaultOptions: ExplorerOptions = {
     }
     return -1;
   },
-  filterFn: (node: FileTrieNode) => getSlugSegment(node) !== "tags",
+  filterFn: (node: FileTrieNode) => node.slugSegment !== "tags",
   order: ["filter", "map", "sort"],
 };
 

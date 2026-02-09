@@ -7,7 +7,7 @@ import OverflowListFactory from "./OverflowList";
 import { classNames } from "../util/lang";
 import { i18n } from "../i18n";
 import style from "./styles/explorer.scss";
-// @ts-ignore
+// @ts-expect-error - Inline script loaded as text by esbuild plugin
 import script from "./scripts/explorer.inline.ts";
 
 interface FileTrieNode {
@@ -15,7 +15,7 @@ interface FileTrieNode {
   slugSegments?: string[];
   displayName?: string;
   isFolder: boolean;
-  data: any | null;
+  data: Record<string, unknown> | null;
   children: FileTrieNode[];
 }
 

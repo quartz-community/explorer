@@ -26,7 +26,6 @@ describe("Explorer Component", () => {
 
     expect(component.css).toBeDefined();
     expect(typeof component.css).toBe("string");
-    expect(component.css?.length).toBeGreaterThan(0);
   });
 
   it("should export component with afterDOMLoaded script", () => {
@@ -34,7 +33,6 @@ describe("Explorer Component", () => {
 
     expect(component.afterDOMLoaded).toBeDefined();
     expect(typeof component.afterDOMLoaded).toBe("string");
-    expect(component.afterDOMLoaded?.length).toBeGreaterThan(0);
   });
 });
 

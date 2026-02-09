@@ -1,5 +1,5 @@
-// @ts-nocheck
-import { simplifySlug, joinSegments } from "@quartz-community/utils";
+// @ts-nocheck - Required for inline scripts that run in browser context
+import { simplifySlug } from "@quartz-community/utils";
 
 // Simple trie node implementation for client-side
 class FileTrieNode {
@@ -235,8 +235,7 @@ document.addEventListener("nav", async (e) => {
     const allExplorers = document.querySelectorAll("div.explorer");
     console.log("[Explorer] Found", allExplorers.length, "explorers");
 
-    // Load saved folder states
-    let savedState = {};
+    const savedState = {};
     try {
       const saved = JSON.parse(localStorage.getItem("fileTree") || "[]");
       saved.forEach((item) => {
@@ -289,7 +288,7 @@ document.addEventListener("nav", async (e) => {
 
       const explorerButtons = explorer.getElementsByClassName("explorer-toggle");
       for (const button of explorerButtons) {
-        const clickHandler = function (evt) {
+        const clickHandler = function () {
           const nearestExplorer = this.closest(".explorer");
           if (!nearestExplorer) return;
           const explorerCollapsed = nearestExplorer.classList.toggle("collapsed");

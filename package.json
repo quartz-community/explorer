@@ -8,16 +8,14 @@
   "homepage": "https://quartz.jzhao.xyz",
   "repository": {
     "type": "git",
-    "url": "https://github.com/quartz-community/plugin-template"
+    "url": "https://github.com/quartz-community/explorer"
   },
   "keywords": [
     "quartz",
     "quartz-plugin",
-    "plugin-template",
-    "remark",
-    "rehype",
-    "mdast",
-    "hast"
+    "explorer",
+    "file-tree",
+    "navigation"
   ],
   "files": [
     "dist",
@@ -67,14 +65,7 @@
   },
   "dependencies": {
     "@quartz-community/types": "github:quartz-community/types",
-    "mdast-util-find-and-replace": "^3.0.1",
-    "rehype-slug": "^6.0.0",
-    "remark-gfm": "^4.0.1",
-    "remark-parse": "^11.0.0",
-    "remark-stringify": "^11.0.0",
-    "unified": "^11.0.5",
-    "unist-util-visit": "^5.0.0",
-    "vfile": "^6.0.3"
+    "@quartz-community/utils": "github:quartz-community/utils"
   },
   "devDependencies": {
     "@types/hast": "^3.0.4",

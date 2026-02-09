@@ -1,4 +1,6 @@
 // @ts-nocheck
+import { simplifySlug, joinSegments } from "@quartz-community/utils";
+
 // Simple trie node implementation for client-side
 class FileTrieNode {
   constructor(segments, data) {
@@ -75,11 +77,6 @@ class FileTrieNode {
     entries.forEach(([, entry]) => trie.add(entry));
     return trie;
   }
-}
-
-// Helper to join segments safely
-function joinSegments(...segments) {
-  return segments.filter(Boolean).join("/");
 }
 
 // Process and sort nodes
@@ -168,11 +165,12 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
   if (!folderTemplate || !fileTemplate) return;
 
   const currentPath = pathPrefix ? pathPrefix + "/" + node.slugSegment : node.slugSegment;
+  const simplifiedCurrentSlug = simplifySlug(currentSlug);
 
   if (node.isFolder) {
     const clone = folderTemplate.content.cloneNode(true);
     const folderContainer = clone.querySelector(".folder-container");
-    const folderButton = clone.querySelector(".folder-button");
+    let folderButton = clone.querySelector(".folder-button");
     const folderTitle = clone.querySelector(".folder-title");
     const folderOuter = clone.querySelector(".folder-outer");
     const contentUl = clone.querySelector(".content");
@@ -180,10 +178,30 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
     if (folderTitle) folderTitle.textContent = node.displayName || node.slugSegment;
     if (folderContainer) folderContainer.dataset.folderpath = node.slug;
 
+    if (folderBehavior === "link" && folderButton) {
+      const folderLink = document.createElement("a");
+      folderLink.className = folderButton.className;
+      const folderHref = simplifySlug(node.slug);
+      folderLink.href = folderHref || ".";
+      if (folderTitle) {
+        folderLink.appendChild(folderTitle);
+      } else {
+        folderLink.textContent = node.displayName || node.slugSegment;
+      }
+      folderButton.replaceWith(folderLink);
+      folderButton = folderLink;
+    }
+
     // Check saved state for collapsed status
     const isCollapsed = savedState[node.slug] !== undefined ? savedState[node.slug] : true; // Default collapsed
 
-    if (!isCollapsed && folderOuter) {
+    // if this folder is a prefix of the current path we want to open it anyways
+    const simpleFolderPath = simplifySlug(node.slug);
+    const folderIsPrefixOfCurrentSlug =
+      simpleFolderPath &&
+      simpleFolderPath === simplifiedCurrentSlug.slice(0, simpleFolderPath.length);
+
+    if ((!isCollapsed || folderIsPrefixOfCurrentSlug) && folderOuter) {
       folderOuter.classList.add("open");
     }
 
@@ -199,8 +217,8 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
     const clone = fileTemplate.content.cloneNode(true);
     const link = clone.querySelector("a");
     if (link) {
-      // Use absolute path for consistent navigation from any page
-      link.href = "/" + node.data.slug;
+      // Use relative path for consistent navigation from any page
+      link.href = node.data.slug;
       link.textContent = node.displayName || node.slugSegment;
       if (node.data.slug === currentSlug) {
         link.classList.add("active");
@@ -213,7 +231,7 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
 document.addEventListener("nav", async (e) => {
   try {
     console.log("[Explorer] Nav event received");
-    const currentSlug = e.detail?.url || "";
+    const currentSlug = (e.detail?.url || "").replace(/^\/+/, "");
     const allExplorers = document.querySelectorAll("div.explorer");
     console.log("[Explorer] Found", allExplorers.length, "explorers");
 
@@ -254,6 +272,17 @@ document.addEventListener("nav", async (e) => {
         console.log("[Explorer] Render complete, final list length:", explorerUl.children.length);
       } else {
         console.warn("[Explorer] No trie or empty children");
+      }
+
+      // restore scrollTop position or scroll to active element
+      const scrollTop = sessionStorage.getItem("explorerScrollTop");
+      if (scrollTop) {
+        explorerUl.scrollTop = parseInt(scrollTop, 10);
+      } else {
+        const activeElement = explorerUl.querySelector(".active");
+        if (activeElement) {
+          activeElement.scrollIntoView({ behavior: "smooth" });
+        }
       }
 
       const cleanupHandlers = [];
@@ -315,8 +344,10 @@ document.addEventListener("nav", async (e) => {
 
           if (folderBehavior === "link") {
             if (folderPath) {
-              window.location.href = "/" + folderPath;
+              const folderHref = simplifySlug(folderPath);
+              window.location.href = folderHref || ".";
             }
+            return;
           } else {
             evt.stopPropagation();
             if (!childFolderContainer) return;
@@ -354,15 +385,6 @@ document.addEventListener("nav", async (e) => {
         explorer.classList.add("collapsed");
         explorer.setAttribute("aria-expanded", "false");
         document.documentElement.classList.remove("mobile-no-scroll");
-      }
-    }
-
-    // Restore scroll position
-    const savedScrollTop = sessionStorage.getItem("explorerScrollTop");
-    if (savedScrollTop) {
-      const explorerUl = document.querySelector(".explorer-ul");
-      if (explorerUl) {
-        explorerUl.scrollTop = parseInt(savedScrollTop, 10);
       }
     }
   } catch (err) {

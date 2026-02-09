@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Explorer } from "../src/components/Explorer";
+import Explorer from "../src/components/Explorer";
 
 describe("Explorer Component", () => {
   it("should create an Explorer component with default options", () => {
@@ -47,7 +47,8 @@ describe("Explorer Manifest", () => {
     expect(manifest.version).toBeDefined();
     expect(manifest.components).toBeDefined();
     expect(typeof manifest.components).toBe("object");
-    expect(manifest.components.Explorer).toBeDefined();
-    expect(manifest.components.Explorer.name).toBe("Explorer");
+    const explorerComponent = manifest.components?.Explorer;
+    expect(explorerComponent).toBeDefined();
+    expect(explorerComponent?.name).toBe("Explorer");
   });
 });

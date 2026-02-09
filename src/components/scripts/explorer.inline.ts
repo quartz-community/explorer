@@ -157,6 +157,9 @@ async function buildFileTrie(dataFns) {
   }
 }
 
+// Render generation to prevent race conditions
+let currentRenderGeneration = 0;
+
 // Render the file tree
 function renderTree(node, container, currentSlug, folderBehavior, savedState, pathPrefix = "") {
   const folderTemplate = document.getElementById("template-folder");
@@ -228,8 +231,9 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
 }
 
 document.addEventListener("nav", async (e) => {
+  const thisGeneration = ++currentRenderGeneration;
   try {
-    console.log("[Explorer] Nav event received");
+    console.log("[Explorer] Nav event received, generation:", thisGeneration);
     const currentSlug = (e.detail?.url || "").replace(/^\/+/, "");
     const allExplorers = document.querySelectorAll("div.explorer");
     console.log("[Explorer] Found", allExplorers.length, "explorers");
@@ -261,8 +265,18 @@ document.addEventListener("nav", async (e) => {
       // Build and render the tree
       console.log("[Explorer] Starting tree build...");
       const trie = await buildFileTrie(dataFns);
+
+      // Check if another nav event started while we were fetching
+      if (thisGeneration !== currentRenderGeneration) {
+        console.log("[Explorer] Stale render generation, skipping");
+        return;
+      }
+
       console.log("[Explorer] Trie result:", trie ? "success" : "null");
       if (trie && trie.children && trie.children.length > 0) {
+        // Clear again before rendering to ensure clean state
+        explorerUl.innerHTML = '<li class="overflow-end"></li>';
+
         console.log("[Explorer] Rendering", trie.children.length, "children");
         for (const child of trie.children) {
           renderTree(child, explorerUl, currentSlug, folderBehavior, savedState, "");

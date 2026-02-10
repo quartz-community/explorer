@@ -269,7 +269,7 @@ document.addEventListener("nav", async (e) => {
       // Check if another nav event started while we were fetching
       if (thisGeneration !== currentRenderGeneration) {
         console.log("[Explorer] Stale render generation, skipping");
-        return;
+        continue;
       }
 
       console.log("[Explorer] Trie result:", trie ? "success" : "null");

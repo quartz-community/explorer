@@ -267,36 +267,37 @@ document.addEventListener("nav", async (e) => {
       const trie = await buildFileTrie(dataFns);
 
       // Check if another nav event started while we were fetching
-      if (thisGeneration !== currentRenderGeneration) {
-        console.log("[Explorer] Stale render generation, skipping");
-        continue;
-      }
+      if (thisGeneration === currentRenderGeneration) {
+        console.log("[Explorer] Render generation is current, rendering tree");
+        console.log("[Explorer] Trie result:", trie ? "success" : "null");
+        if (trie && trie.children && trie.children.length > 0) {
+          // Clear again before rendering to ensure clean state
+          explorerUl.innerHTML = '<li class="overflow-end"></li>';
 
-      console.log("[Explorer] Trie result:", trie ? "success" : "null");
-      if (trie && trie.children && trie.children.length > 0) {
-        // Clear again before rendering to ensure clean state
-        explorerUl.innerHTML = '<li class="overflow-end"></li>';
-
-        console.log("[Explorer] Rendering", trie.children.length, "children");
-        for (const child of trie.children) {
-          renderTree(child, explorerUl, currentSlug, folderBehavior, savedState, "");
+          console.log("[Explorer] Rendering", trie.children.length, "children");
+          for (const child of trie.children) {
+            renderTree(child, explorerUl, currentSlug, folderBehavior, savedState, "");
+          }
+          console.log("[Explorer] Render complete, final list length:", explorerUl.children.length);
+        } else {
+          console.warn("[Explorer] No trie or empty children");
         }
-        console.log("[Explorer] Render complete, final list length:", explorerUl.children.length);
-      } else {
-        console.warn("[Explorer] No trie or empty children");
-      }
 
-      // restore scrollTop position or scroll to active element
-      const scrollTop = sessionStorage.getItem("explorerScrollTop");
-      if (scrollTop) {
-        explorerUl.scrollTop = parseInt(scrollTop, 10);
-      } else {
-        const activeElement = explorerUl.querySelector(".active");
-        if (activeElement) {
-          activeElement.scrollIntoView({ behavior: "smooth" });
+        // restore scrollTop position or scroll to active element
+        const scrollTop = sessionStorage.getItem("explorerScrollTop");
+        if (scrollTop) {
+          explorerUl.scrollTop = parseInt(scrollTop, 10);
+        } else {
+          const activeElement = explorerUl.querySelector(".active");
+          if (activeElement) {
+            activeElement.scrollIntoView({ behavior: "smooth" });
+          }
         }
+      } else {
+        console.log("[Explorer] Stale render generation, skipping tree render");
       }
 
+      // Always set up event listeners, regardless of render generation
       const cleanupHandlers = [];
 
       const explorerButtons = explorer.getElementsByClassName("explorer-toggle");

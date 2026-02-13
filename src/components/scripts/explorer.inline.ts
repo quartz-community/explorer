@@ -356,10 +356,10 @@ document.addEventListener("nav", async (e) => {
           const folderPath = folderContainer.dataset.folderpath;
 
           if (folderBehavior === "link") {
-            if (folderPath) {
-              const folderHref = simplifySlug(folderPath);
-              window.location.href = folderHref || ".";
-            }
+            // When folderBehavior is "link", the <button> has been replaced with an <a> tag
+            // that has the correct absolute href (e.g. "/features/"). Let the <a> tag's
+            // native click propagate to the SPA router — don't navigate imperatively here,
+            // as that would use a relative URL and break SPA navigation.
             return;
           } else {
             evt.stopPropagation();

@@ -21,6 +21,6 @@
     "jsx": "react-jsx",
     "jsxImportSource": "preact"
   },
-  "include": ["src", "test", "types", "tsup.config.ts", "vitest.config.ts"],
+  "include": ["src", "test", "tsup.config.ts", "vitest.config.ts"],
   "exclude": ["dist", "node_modules"]
 }

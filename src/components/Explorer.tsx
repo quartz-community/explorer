@@ -19,7 +19,7 @@ interface FileTrieNode {
   children: FileTrieNode[];
 }
 
-interface ExplorerOptions {
+export interface ExplorerOptions {
   title?: string;
   folderDefaultState: "collapsed" | "open";
   folderClickBehavior: "collapse" | "link";

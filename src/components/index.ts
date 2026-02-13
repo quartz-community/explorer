@@ -1,2 +1,2 @@
 export { default as Explorer } from "./Explorer";
-export type { ExplorerOptions } from "@quartz-community/types";
+export type { ExplorerOptions } from "./Explorer";

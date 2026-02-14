@@ -14,16 +14,8 @@ This is the first first-party community plugin for Quartz, demonstrating the new
 
 ## Installation
 
-### From GitHub (Recommended for now)
-
 ```bash
-npm install github:quartz-community/explorer --legacy-peer-deps
-```
-
-### From NPM (when published)
-
-```bash
-npm install @quartz-community/explorer
+npx quartz plugin add github:quartz-community/explorer
 ```
 
 ## Usage
@@ -34,53 +26,42 @@ Add the plugin to your externalPlugins array:
 
 ```typescript
 // quartz.config.ts
-import { QuartzConfig } from "./quartz/cfg";
-
 const config: QuartzConfig = {
-  configuration: {
-    // ... your configuration
-  },
-  plugins: {
-    // ... your existing plugins
-  },
-  externalPlugins: ["@quartz-community/explorer"],
+  // ...
+  externalPlugins: [
+    "github:quartz-community/explorer",
+    // ... other plugins
+  ],
 };
-
-export default config;
 ```
 
-### 2. Import in your layout
+### 2. Add to your layout
 
 ```typescript
 // quartz.layout.ts
-import { Explorer } from "@quartz-community/explorer";
+import * as Plugin from "./.quartz/plugins"
 
-// Create the Explorer component once and reuse it across layouts
-const explorerComponent = Explorer({
-  title: "Explorer",
-  folderDefaultState: "collapsed",
-  folderClickBehavior: "link",
-  useSavedState: true,
-});
-
-export const defaultContentPageLayout: PageLayout = {
-  left: [
-    explorerComponent,
-    // ... other components
-  ],
-  right: [
-    // ... other components
-  ],
-};
-
-export const defaultListPageLayout: PageLayout = {
-  left: [
-    explorerComponent, // Reuse the same component instance
-    // ... other components
-  ],
-  right: [
-    // ... other components
-  ],
+export const layout = {
+  defaults: {
+    head: Component.Head(),
+    header: [],
+    afterBody: [],
+    footer: Plugin.Footer({ links: { ... } }),
+  },
+  byPageType: {
+    content: {
+      left: [
+        Plugin.Explorer({
+          title: "Explorer",
+          folderDefaultState: "collapsed",
+          folderClickBehavior: "link",
+          useSavedState: true,
+        }),
+        // ... other components
+      ],
+      // ...
+    },
+  },
 };
 ```
 

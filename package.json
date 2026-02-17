@@ -81,6 +81,24 @@
     "typescript": "^5.9.3",
     "vitest": "^2.1.9"
   },
+  "quartz": {
+    "name": "explorer",
+    "displayName": "Explorer",
+    "category": "emitter",
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultOrder": 50,
+    "defaultEnabled": true,
+    "defaultOptions": {},
+    "components": {
+      "Explorer": {
+        "displayName": "Explorer",
+        "defaultPosition": "left",
+        "defaultPriority": 50
+      }
+    }
+  },
   "engines": {
     "node": ">=22",
     "npm": ">=10.9.2"

@@ -2,8 +2,6 @@
 
 The Explorer component for Quartz - navigate your digital garden with an interactive file tree.
 
-This is the first first-party community plugin for Quartz, demonstrating the new plugin system that allows components to be distributed as npm packages.
-
 ## Features
 
 - 📁 Interactive folder tree with collapse/expand functionality
@@ -20,49 +18,26 @@ npx quartz plugin add github:quartz-community/explorer
 
 ## Usage
 
-### 1. Configure in quartz.config.ts
-
-Add the plugin to your externalPlugins array:
-
-```typescript
-// quartz.config.ts
-const config: QuartzConfig = {
-  // ...
-  externalPlugins: [
-    "github:quartz-community/explorer",
-    // ... other plugins
-  ],
-};
+```yaml title="quartz.config.yaml"
+plugins:
+  - source: github:quartz-community/explorer
+    enabled: true
+    layout:
+      position: left
+      priority: 50
 ```
 
-### 2. Add to your layout
+For advanced use cases, you can override in TypeScript:
 
-```typescript
-// quartz.layout.ts
-import * as Plugin from "./.quartz/plugins"
+```ts title="quartz.ts (override)"
+import * as ExternalPlugin from "./.quartz/plugins";
 
-export const layout = {
-  defaults: {
-    head: Component.Head(),
-    header: [],
-    afterBody: [],
-    footer: Plugin.Footer({ links: { ... } }),
-  },
-  byPageType: {
-    content: {
-      left: [
-        Plugin.Explorer({
-          title: "Explorer",
-          folderDefaultState: "collapsed",
-          folderClickBehavior: "link",
-          useSavedState: true,
-        }),
-        // ... other components
-      ],
-      // ...
-    },
-  },
-};
+ExternalPlugin.Explorer({
+  title: "Explorer",
+  folderDefaultState: "collapsed",
+  folderClickBehavior: "link",
+  useSavedState: true,
+});
 ```
 
 ## Configuration Options
@@ -111,6 +86,10 @@ This is a first-party Quartz community plugin. It serves as both:
 
 1. A production-ready Explorer component
 2. A reference implementation for building Quartz community plugins
+
+## Documentation
+
+See the [Quartz documentation](https://quartz.jzhao.xyz/features/explorer) for more information.
 
 ## License
 

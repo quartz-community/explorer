@@ -47,7 +47,7 @@ class FileTrieNode {
       if (!child) {
         child = this.makeChild(path, undefined);
       }
-      const fileParts = file.filePath.split("/");
+      const fileParts = (file.filePath || file.slug || "").split("/");
       child.fileSegmentHint = fileParts[fileParts.length - path.length];
       child.insert(path.slice(1), file);
     }

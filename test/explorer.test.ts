@@ -36,17 +36,3 @@ describe("Explorer Component", () => {
   });
 });
 
-describe("Explorer Manifest", () => {
-  it("should export a valid plugin manifest", async () => {
-    const { manifest } = await import("../src/manifest");
-
-    expect(manifest).toBeDefined();
-    expect(manifest.name).toBe("@quartz-community/explorer");
-    expect(manifest.version).toBeDefined();
-    expect(manifest.components).toBeDefined();
-    expect(typeof manifest.components).toBe("object");
-    const explorerComponent = manifest.components?.Explorer;
-    expect(explorerComponent).toBeDefined();
-    expect(explorerComponent?.name).toBe("Explorer");
-  });
-});

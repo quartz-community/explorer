@@ -35,4 +35,3 @@ describe("Explorer Component", () => {
     expect(typeof component.afterDOMLoaded).toBe("string");
   });
 });
-

@@ -230,7 +230,7 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
   }
 }
 
-document.addEventListener("nav", async (e) => {
+async function handleNavOrRender(e) {
   const thisGeneration = ++currentRenderGeneration;
   try {
     console.log("[Explorer] Nav event received, generation:", thisGeneration);
@@ -403,7 +403,10 @@ document.addEventListener("nav", async (e) => {
   } catch (err) {
     console.error("[Explorer] Fatal error in nav handler:", err);
   }
-});
+}
+
+document.addEventListener("nav", handleNavOrRender);
+document.addEventListener("render", handleNavOrRender);
 
 document.addEventListener("prenav", () => {
   const explorer = document.querySelector(".explorer-ul");

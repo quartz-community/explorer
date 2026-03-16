@@ -103,10 +103,8 @@ function processTrie(trie, sortFn, filterFn, mapFn) {
 // Build trie from content index data
 async function buildFileTrie(dataFns) {
   try {
-    // Always fetch directly from the content index using absolute path from root
     console.log("[Explorer] Fetching content index...");
-    const response = await fetch("/static/contentIndex.json");
-    const data = await response.json();
+    const data = await fetchData;
     console.log("[Explorer] Fetched data keys:", Object.keys(data).slice(0, 5));
 
     if (!data) {

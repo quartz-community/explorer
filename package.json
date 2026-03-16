@@ -77,9 +77,9 @@
     "preact": "^10.28.2",
     "prettier": "^3.6.2",
     "sass": "^1.97.3",
-    "vitest": "^2.1.9",
     "tsup": "^8.5.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
   },
   "quartz": {
     "name": "explorer",

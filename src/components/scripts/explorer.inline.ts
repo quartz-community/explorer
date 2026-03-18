@@ -1,5 +1,5 @@
 // @ts-nocheck - Required for inline scripts that run in browser context
-import { simplifySlug } from "@quartz-community/utils";
+import { simplifySlug, resolveBasePath } from "@quartz-community/utils/path";
 
 // Simple trie node implementation for client-side
 class FileTrieNode {
@@ -183,7 +183,7 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
       const folderLink = document.createElement("a");
       folderLink.className = folderButton.className;
       const folderHref = simplifySlug(node.slug);
-      folderLink.href = "/" + (folderHref || "");
+      folderLink.href = resolveBasePath(folderHref || "");
       if (folderTitle) {
         folderLink.appendChild(folderTitle);
       } else {
@@ -218,7 +218,7 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
     const clone = fileTemplate.content.cloneNode(true);
     const link = clone.querySelector("a");
     if (link) {
-      link.href = "/" + node.data.slug;
+      link.href = resolveBasePath(node.data.slug);
       link.textContent = node.displayName || node.slugSegment;
       if (node.data.slug === currentSlug) {
         link.classList.add("active");

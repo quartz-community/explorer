@@ -17,6 +17,13 @@ var OverflowList_default = () => {
     OverflowList: (props) => /* @__PURE__ */ jsx(OverflowList, { ...props, id }),
     overflowListAfterDOMLoaded: `
 document.addEventListener("nav", (e) => {
+  const ul = document.getElementById("${id}")
+  if (!ul) return
+
+  const end = ul.querySelector(".overflow-end")
+  if (!end) return
+
+  const scrollContainer = ul.parentElement
   const observer = new IntersectionObserver((entries) => {
     for (const entry of entries) {
       const parentUl = entry.target.parentElement
@@ -27,13 +34,7 @@ document.addEventListener("nav", (e) => {
         parentUl.classList.add("gradient-active")
       }
     }
-  })
-
-  const ul = document.getElementById("${id}")
-  if (!ul) return
-
-  const end = ul.querySelector(".overflow-end")
-  if (!end) return
+  }, scrollContainer ? { root: scrollContainer } : undefined)
 
   observer.observe(end)
   window.addCleanup(() => observer.disconnect())

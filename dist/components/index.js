@@ -1,4 +1,5 @@
 import { jsxs, jsx } from 'preact/jsx-runtime';
+import { classNames } from '@quartz-community/utils/lang';
 
 // src/components/OverflowList.tsx
 var OverflowList = ({
@@ -42,11 +43,6 @@ document.addEventListener("nav", (e) => {
 `
   };
 };
-
-// src/util/lang.ts
-function classNames(...classes) {
-  return classes.filter(Boolean).join(" ");
-}
 
 // src/i18n/locales/en-US.ts
 var en_US_default = {

@@ -9,11 +9,17 @@ class FileTrieNode {
     this.data = data || null;
     this.isFolder = false;
     this.fileSegmentHint = null;
+    this.displayNameOverride = undefined;
   }
 
   get displayName() {
+    if (this.displayNameOverride !== undefined) return this.displayNameOverride;
     const nonIndexTitle = this.data?.title === "index" ? undefined : this.data?.title;
     return nonIndexTitle || this.fileSegmentHint || this.slugSegment || "";
+  }
+
+  set displayName(name) {
+    this.displayNameOverride = name;
   }
 
   get slug() {

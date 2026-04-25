@@ -74,7 +74,7 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
 
     return (
       <div
-        class={classNames(displayClass, "explorer")}
+        class={classNames(displayClass, "explorer", "nav-files-container")}
         data-behavior={opts.folderClickBehavior}
         data-collapsed={opts.folderDefaultState}
         data-savestate={opts.useSavedState}
@@ -133,12 +133,12 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
         </div>
         <template id="template-file">
           <li>
-            <a href="#"></a>
+            <a href="#" class="nav-file-title tree-item-self"></a>
           </li>
         </template>
         <template id="template-folder">
           <li>
-            <div class="folder-container">
+            <div class="folder-container nav-folder-title tree-item-self">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="12"
@@ -149,7 +149,7 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
                 stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                class="folder-icon"
+                class="folder-icon nav-folder-collapse-indicator collapse-icon"
               >
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
@@ -160,7 +160,7 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
               </div>
             </div>
             <div class="folder-outer">
-              <ul class="content"></ul>
+              <ul class="content tree-item-children"></ul>
             </div>
           </li>
         </template>

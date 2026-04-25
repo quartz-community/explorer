@@ -227,7 +227,7 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
       link.href = resolveBasePath(node.data.slug);
       link.textContent = node.displayName || node.slugSegment;
       if (node.data.slug === currentSlug) {
-        link.classList.add("active");
+        link.classList.add("active", "is-active");
       }
     }
     container.appendChild(clone);

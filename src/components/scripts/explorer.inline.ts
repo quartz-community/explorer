@@ -208,9 +208,7 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
       simpleFolderPath &&
       simpleFolderPath === simplifiedCurrentSlug.slice(0, simpleFolderPath.length);
 
-    if ((!isCollapsed || folderIsPrefixOfCurrentSlug) && folderOuter) {
-      folderOuter.classList.add("open");
-    }
+    const shouldOpen = (!isCollapsed || folderIsPrefixOfCurrentSlug);
 
     // Render children
     if (node.children && node.children.length > 0 && contentUl) {
@@ -220,6 +218,16 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
     }
 
     container.appendChild(clone);
+
+    if (shouldOpen) {
+      const appendedFolderOuter = container.lastElementChild?.querySelector(".folder-outer");
+      if (appendedFolderOuter) {
+        appendedFolderOuter.style.transition = "none";
+        appendedFolderOuter.offsetHeight; // force reflow
+        appendedFolderOuter.classList.add("open");
+      }
+    }
+    
   } else if (node.data) {
     const clone = fileTemplate.content.cloneNode(true);
     const link = clone.querySelector("a");
@@ -232,6 +240,7 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
     }
     container.appendChild(clone);
   }
+  
 }
 
 async function handleNavOrRender(e) {
@@ -282,6 +291,14 @@ async function handleNavOrRender(e) {
           for (const child of trie.children) {
             renderTree(child, explorerUl, currentSlug, folderBehavior, savedState, "");
           }
+          // ← tambah di sini, setelah loop render selesai
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              document.querySelectorAll(".folder-outer.open").forEach((el) => {
+                (el as HTMLElement).style.transition = "";
+              });
+            });
+          });
           console.log("[Explorer] Render complete, final list length:", explorerUl.children.length);
         } else {
           console.warn("[Explorer] No trie or empty children");
@@ -399,9 +416,16 @@ async function handleNavOrRender(e) {
       mobileExplorer.classList.remove("hide-until-loaded");
 
       if (mobileExplorer.checkVisibility && mobileExplorer.checkVisibility()) {
+        const content = explorer.querySelector(".explorer-content") as HTMLElement;
+        if (content) content.style.transition = "none";
         explorer.classList.add("collapsed");
         explorer.setAttribute("aria-expanded", "false");
         document.documentElement.classList.remove("mobile-no-scroll");
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (content) content.style.transition = "";
+          });
+        });
       }
     }
   } catch (err) {

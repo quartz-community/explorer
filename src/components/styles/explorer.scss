@@ -1,3 +1,7 @@
+.preload *, .explorer-content .folder-outer.no-transition { 
+  transition: none !important; 
+}
+
 @media all and (max-width: 800px) {
   .page > #quartz-body > :not(.sidebar.left:has(.explorer)) {
     transition: transform 300ms ease-in-out;

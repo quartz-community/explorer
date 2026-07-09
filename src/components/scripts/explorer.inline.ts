@@ -294,7 +294,23 @@ async function handleNavOrRender(e) {
         } else {
           const activeElement = explorerUl.querySelector(".active");
           if (activeElement) {
-            activeElement.scrollIntoView({ behavior: "smooth" });
+            // Scroll only the explorer's own container to reveal the active item.
+            // `scrollIntoView` scrolls every scrollable ancestor (including the
+            // document/window); with SPA disabled, each full page load then drags
+            // the whole page down to wherever the active item sits, so the reader
+            // lands partway down the page instead of at the top. `Element.scrollTo`
+            // moves this container alone and never touches the window.
+            const containerRect = explorerUl.getBoundingClientRect();
+            const activeRect = activeElement.getBoundingClientRect();
+            explorerUl.scrollTo({
+              top:
+                explorerUl.scrollTop +
+                activeRect.top -
+                containerRect.top -
+                explorerUl.clientHeight / 2 +
+                activeElement.offsetHeight / 2,
+              behavior: "smooth",
+            });
           }
         }
       } else {

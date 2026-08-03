@@ -237,15 +237,15 @@ li:has(> .folder-outer:not(.open)) > .folder-container > svg {
   }
 }
 
-// Canvas file indicator
-.nav-file-canvas {
+// File type indicator badge (Canvas, Base, etc.)
+.nav-file-type-badge {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 6px;
 }
 
-.nav-canvas-badge {
+.nav-file-type-badge-label {
   display: inline-block;
   font-size: 0.6rem;
   font-weight: 600;

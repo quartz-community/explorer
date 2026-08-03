@@ -136,6 +136,7 @@ async function buildFileTrie(dataFns) {
     let sortFn = defaultSortFn;
     let filterFn = defaultFilterFn;
     let mapFn = null;
+    let fileTypeBadges = { canvas: "Canvas", base: "Base" };
 
     if (dataFns) {
       try {
@@ -149,12 +150,15 @@ async function buildFileTrie(dataFns) {
         if (parsed.mapFn) {
           mapFn = new Function("node", "(" + parsed.mapFn + ")(node)");
         }
+        if (parsed.fileTypeBadges) {
+          fileTypeBadges = parsed.fileTypeBadges;
+        }
       } catch (e) {
         console.error("Error parsing data functions:", e);
       }
     }
 
-    return processTrie(trie, sortFn, filterFn, mapFn);
+    return { trie: processTrie(trie, sortFn, filterFn, mapFn), fileTypeBadges };
   } catch (e) {
     console.error("Error building file trie:", e);
     return null;
@@ -165,7 +169,7 @@ async function buildFileTrie(dataFns) {
 let currentRenderGeneration = 0;
 
 // Render the file tree
-function renderTree(node, container, currentSlug, folderBehavior, savedState, pathPrefix = "") {
+function renderTree(node, container, currentSlug, folderBehavior, savedState, pathPrefix = "", fileTypeBadges = {}) {
   const folderTemplate = document.getElementById("template-folder");
   const fileTemplate = document.getElementById("template-file");
 
@@ -215,7 +219,7 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
     // Render children
     if (node.children && node.children.length > 0 && contentUl) {
       for (const child of node.children) {
-        renderTree(child, contentUl, currentSlug, folderBehavior, savedState, currentPath);
+        renderTree(child, contentUl, currentSlug, folderBehavior, savedState, currentPath, fileTypeBadges);
       }
     }
 
@@ -229,13 +233,18 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
       if (node.data.slug === currentSlug) {
         link.classList.add("active", "is-active");
       }
-      // Add canvas indicator for .canvas files
-      if (node.data.slug && node.data.slug.endsWith(".canvas")) {
-        link.classList.add("nav-file-canvas");
-        const badge = document.createElement("span");
-        badge.className = "nav-canvas-badge";
-        badge.textContent = "Canvas";
-        link.appendChild(badge);
+      // Add file type badge (e.g. Canvas for .canvas, Base for .base)
+      if (node.data.slug && fileTypeBadges) {
+        const ext = Object.keys(fileTypeBadges).find((key) =>
+          node.data.slug.endsWith("." + key)
+        );
+        if (ext) {
+          link.classList.add("nav-file-type-badge");
+          const badge = document.createElement("span");
+          badge.className = "nav-file-type-badge-label";
+          badge.textContent = fileTypeBadges[ext];
+          link.appendChild(badge);
+        }
       }
     }
     container.appendChild(clone);
@@ -287,8 +296,9 @@ async function handleNavOrRender(e) {
           explorerUl.innerHTML = '<li class="overflow-end"></li>';
 
           console.log("[Explorer] Rendering", trie.children.length, "children");
+          const fileTypeBadges = trie.fileTypeBadges || {};
           for (const child of trie.children) {
-            renderTree(child, explorerUl, currentSlug, folderBehavior, savedState, "");
+            renderTree(child, explorerUl, currentSlug, folderBehavior, savedState, "", fileTypeBadges);
           }
           console.log("[Explorer] Render complete, final list length:", explorerUl.children.length);
         } else {

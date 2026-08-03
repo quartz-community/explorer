@@ -28,12 +28,19 @@ export interface ExplorerOptions {
   filterFn?: (node: FileTrieNode) => boolean;
   mapFn?: (node: FileTrieNode) => FileTrieNode;
   order?: Array<"filter" | "map" | "sort">;
+  /**
+   * Map file extensions to badge labels shown in the explorer.
+   * Default: { canvas: "Canvas", base: "Base" }
+   * Example: { canvas: "Canvas", base: "Base", drawio: "DrawIO" }
+   */
+  fileTypeBadges?: Record<string, string>;
 }
 
 const defaultOptions: ExplorerOptions = {
   folderDefaultState: "collapsed",
   folderClickBehavior: "link",
   useSavedState: true,
+  fileTypeBadges: { canvas: "Canvas", base: "Base" },
   mapFn: (node: FileTrieNode) => {
     return node;
   },
@@ -83,6 +90,7 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
           sortFn: opts.sortFn?.toString(),
           filterFn: opts.filterFn?.toString(),
           mapFn: opts.mapFn?.toString(),
+          fileTypeBadges: opts.fileTypeBadges,
         })}
       >
         <button

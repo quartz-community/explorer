@@ -229,6 +229,14 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
       if (node.data.slug === currentSlug) {
         link.classList.add("active", "is-active");
       }
+      // Add canvas indicator for .canvas files
+      if (node.data.slug && node.data.slug.endsWith(".canvas")) {
+        link.classList.add("nav-file-canvas");
+        const badge = document.createElement("span");
+        badge.className = "nav-canvas-badge";
+        badge.textContent = "Canvas";
+        link.appendChild(badge);
+      }
     }
     container.appendChild(clone);
   }

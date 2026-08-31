@@ -403,10 +403,13 @@ let pendingDetail = null;
 let isRenderScheduled = false;
 
 function scheduleNavOrRender(e) {
-  if (e?.detail?.url) {
-    pendingDetail = { ...(pendingDetail || {}), ...e.detail };
-  } else if (!pendingDetail) {
-    pendingDetail = e?.detail || {};
+  const previousUrl = pendingDetail?.url;
+  pendingDetail = { ...(pendingDetail || {}), ...(e?.detail || {}) };
+  // Only fall back to the previous url if this event didn't carry one at
+  // all (e.g. "render" with no detail) — an explicit "" url (root page) is
+  // a real value and must not be discarded.
+  if (pendingDetail.url == null && previousUrl != null) {
+    pendingDetail.url = previousUrl;
   }
 
   if (!isRenderScheduled) {

@@ -294,7 +294,9 @@ async function handleNavOrRender(e) {
         } else {
           const activeElement = explorerUl.querySelector(".active");
           if (activeElement) {
-            activeElement.scrollIntoView({ behavior: "smooth" });
+            const top =
+              activeElement.getBoundingClientRect().top - explorerUl.getBoundingClientRect().top;
+            explorerUl.scrollTop += top;
           }
         }
       } else {

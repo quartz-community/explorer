@@ -1,5 +1,5 @@
 // @ts-nocheck - Required for inline scripts that run in browser context
-import { simplifySlug, resolveBasePath } from "@quartz-community/utils/path";
+import { simplifySlug, resolveBasePath, slugifyFilePath } from "@quartz-community/utils/path";
 
 // Simple trie node implementation for client-side
 class FileTrieNode {
@@ -60,7 +60,10 @@ class FileTrieNode {
   }
 
   add(file) {
-    this.insert(file.slug.split("/"), file);
+    // Place a page by its file path, link to it by its slug: a note with a permalink (published
+    // somewhere else) stays in its folder, as in Obsidian Publish.
+    const position = file.filePath ? slugifyFilePath(file.filePath) : file.slug;
+    this.insert(position.split("/"), file);
   }
 
   sort(sortFn) {

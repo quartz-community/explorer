@@ -28,6 +28,18 @@
 .explorer.collapsed {
   flex: 0 1 1.2rem;
 }
+@media not all and (max-width: 800px) {
+  // size the collapsed explorer to its title instead of a fixed 1.2rem, so
+  // themes with a larger heading font-size / line-height don't clip it
+  .explorer.collapsed {
+    flex: 0 0 auto;
+  }
+  .explorer.collapsed > .explorer-content {
+    height: 0;
+    margin-top: 0;
+    visibility: hidden;
+  }
+}
 .explorer.collapsed .fold {
   transform: rotateZ(-90deg);
 }

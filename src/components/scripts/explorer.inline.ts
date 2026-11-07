@@ -112,9 +112,7 @@ function processTrie(trie, sortFn, filterFn, mapFn) {
 // Build trie from content index data
 async function buildFileTrie(dataFns) {
   try {
-    console.log("[Explorer] Fetching content index...");
     const data = await fetchData;
-    console.log("[Explorer] Fetched data keys:", Object.keys(data).slice(0, 5));
 
     if (!data) {
       console.error("[Explorer] No data received");
@@ -125,15 +123,12 @@ async function buildFileTrie(dataFns) {
     const contentData = data.content || data;
     const entries = Object.entries(contentData);
 
-    console.log("[Explorer] Entry count:", entries.length);
-
     if (entries.length === 0) {
       console.warn("[Explorer] No content entries found");
       return null;
     }
 
     const trie = FileTrieNode.fromEntries(entries);
-    console.log("[Explorer] Trie root children:", trie.children.length);
 
     // Parse data functions from string if provided
     let sortFn = defaultSortFn;
@@ -240,10 +235,8 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
 async function handleNavOrRender(e) {
   const thisGeneration = ++currentRenderGeneration;
   try {
-    console.log("[Explorer] Nav event received, generation:", thisGeneration);
     const currentSlug = (e.detail?.url || "").replace(/^\/+/, "");
     const allExplorers = document.querySelectorAll("div.explorer");
-    console.log("[Explorer] Found", allExplorers.length, "explorers");
 
     const savedState = {};
     try {
@@ -270,22 +263,17 @@ async function handleNavOrRender(e) {
       const folderBehavior = explorer.dataset.behavior || "collapse";
 
       // Build and render the tree
-      console.log("[Explorer] Starting tree build...");
       const trie = await buildFileTrie(dataFns);
 
       // Check if another nav event started while we were fetching
       if (thisGeneration === currentRenderGeneration) {
-        console.log("[Explorer] Render generation is current, rendering tree");
-        console.log("[Explorer] Trie result:", trie ? "success" : "null");
         if (trie && trie.children && trie.children.length > 0) {
           // Clear again before rendering to ensure clean state
           explorerUl.innerHTML = '<li class="overflow-end"></li>';
 
-          console.log("[Explorer] Rendering", trie.children.length, "children");
           for (const child of trie.children) {
             renderTree(child, explorerUl, currentSlug, folderBehavior, savedState, "");
           }
-          console.log("[Explorer] Render complete, final list length:", explorerUl.children.length);
         } else {
           console.warn("[Explorer] No trie or empty children");
         }
@@ -300,9 +288,8 @@ async function handleNavOrRender(e) {
             activeElement.scrollIntoView({ behavior: "smooth" });
           }
         }
-      } else {
-        console.log("[Explorer] Stale render generation, skipping tree render");
       }
+      // (a newer nav event started while fetching: it renders the tree instead)
 
       // Always set up event listeners, regardless of render generation
       const cleanupHandlers = [];

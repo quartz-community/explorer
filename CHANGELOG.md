@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.1
+
+### Patch Changes
+
+- f912254: On phones, the explorer's slide-in panel no longer makes every page scroll sideways. It was positioned from the sidebar (16px in) at full screen width, which widened the page's layout viewport by 16px even while hidden; it is now fixed to the screen, with the same inset inside.
+- 87e44de: A note with a frontmatter `permalink` (published at its permalink, Quartz 5.1+) stays in its folder in the explorer, as in Obsidian Publish: pages are placed by their file path and linked by their address.
+- b7cfd61: Remove debug logging: the explorer no longer prints "[Explorer] …" messages to the browser console on every page load and navigation. Warnings and errors are kept.
+- fa78995: Fix the collapsed desktop Explorer clipping its "Explorer" title when a theme uses a larger heading font-size or line-height: the collapsed explorer now sizes to its title instead of a fixed 1.2rem (jackyzha0/quartz#2532).
+
 ## 1.0.0
 
 ### Major Changes

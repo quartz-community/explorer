@@ -28,6 +28,18 @@
 .explorer.collapsed {
   flex: 0 1 1.2rem;
 }
+@media not all and (max-width: 800px) {
+  // size the collapsed explorer to its title instead of a fixed 1.2rem, so
+  // themes with a larger heading font-size / line-height don't clip it
+  .explorer.collapsed {
+    flex: 0 0 auto;
+  }
+  .explorer.collapsed > .explorer-content {
+    height: 0;
+    margin-top: 0;
+    visibility: hidden;
+  }
+}
 .explorer.collapsed .fold {
   transform: rotateZ(-90deg);
 }
@@ -201,7 +213,10 @@ li:has(> .folder-outer:not(.open)) > .folder-container > svg {
   .explorer .explorer-content {
     box-sizing: border-box;
     z-index: 100;
-    position: absolute;
+    // Fixed, so the screen-wide panel starts at the screen's edge. Absolute, it started at the
+    // sidebar's (16px in) and, though slid out of view, widened the page's layout viewport on
+    // phones by that much (horizontal scroll on every page with the explorer).
+    position: fixed;
     top: 0;
     left: 0;
     margin-top: 0;
@@ -213,7 +228,8 @@ li:has(> .folder-outer:not(.open)) > .folder-container > svg {
       transform 200ms ease,
       visibility 200ms ease;
     overflow: hidden;
-    padding: 4rem 0 2rem 0;
+    // the inset it used to get from the sidebar's offset
+    padding: 4rem 1rem 2rem 1rem;
     height: 100dvh;
     max-height: 100dvh;
     visibility: hidden;

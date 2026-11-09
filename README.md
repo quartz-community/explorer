@@ -13,30 +13,37 @@ The Explorer component for Quartz - navigate your digital garden with an interac
 ## Installation
 
 ```bash
-npx quartz plugin add github:quartz-community/explorer
+npx quartz plugin add @quartz-community/explorer
 ```
 
 ## Usage
 
+This plugin is already enabled in the default `quartz.config.yaml`:
+
 ```yaml title="quartz.config.yaml"
 plugins:
-  - source: github:quartz-community/explorer
+  - source: "@quartz-community/explorer"
     enabled: true
+    options:
+      folderClickBehavior: link
+      folderDefaultState: collapsed
+      useSavedState: true
     layout:
       position: left
       priority: 50
 ```
 
-For advanced use cases, you can override in TypeScript:
+Callback options (`sortFn`, `filterFn`, `mapFn`) can't be expressed in YAML. Set them in a TypeScript override:
 
 ```ts title="quartz.ts (override)"
 import * as ExternalPlugin from "./.quartz/plugins";
 
+// Must be placed before loadQuartzConfig()
 ExternalPlugin.Explorer({
-  title: "Explorer",
-  folderDefaultState: "collapsed",
-  folderClickBehavior: "link",
-  useSavedState: true,
+  mapFn: (node) => {
+    node.displayName = node.displayName.toUpperCase();
+    return node;
+  },
 });
 ```
 
@@ -44,16 +51,16 @@ ExternalPlugin.Explorer({
 
 ```typescript
 interface ExplorerOptions {
-  /** Title displayed above the explorer */
+  /** Title displayed above the explorer (default: the localized "Explorer") */
   title?: string;
 
-  /** Default state for folders: "collapsed" or "open" */
+  /** Default state for folders: "collapsed" or "open" (default: "collapsed") */
   folderDefaultState: "collapsed" | "open";
 
-  /** Behavior when clicking folders: "collapse" to toggle, "link" to navigate */
+  /** Behavior when clicking folders: "collapse" to toggle, "link" to navigate (default: "link") */
   folderClickBehavior: "collapse" | "link";
 
-  /** Whether to persist folder state in localStorage */
+  /** Whether to persist folder state in localStorage (default: true) */
   useSavedState: boolean;
 
   /** Custom sort function for entries */
@@ -62,10 +69,10 @@ interface ExplorerOptions {
   /** Custom filter function for entries */
   filterFn?: (node: FileTrieNode) => boolean;
 
-  /** Custom map function for transforming entries */
-  mapFn?: (node: FileTrieNode) => void;
+  /** Custom map function for transforming entries; returns the (modified) node */
+  mapFn?: (node: FileTrieNode) => FileTrieNode;
 
-  /** Order in which to apply filter, map, and sort */
+  /** Order in which to apply filter, map, and sort (default: ["filter", "map", "sort"]) */
   order?: Array<"filter" | "map" | "sort">;
 }
 ```
@@ -78,7 +85,7 @@ By default, the Explorer:
 - Opens folders when clicked (navigates to index page)
 - Saves folder states between sessions
 - Excludes the "tags" folder from the tree
-- Sorts folders first, then files alphabetically
+- Sorts folders first, then files alphabetically (with numeric ordering)
 
 ## Development
 
@@ -89,7 +96,7 @@ This is a first-party Quartz community plugin. It serves as both:
 
 ## Documentation
 
-See the [Quartz documentation](https://quartz.jzhao.xyz/features/explorer) for more information.
+See the [plugin page](https://quartz.jzhao.xyz/plugins/Explorer) and the [Explorer feature page](https://quartz.jzhao.xyz/features/explorer) in the Quartz documentation.
 
 ## License
 

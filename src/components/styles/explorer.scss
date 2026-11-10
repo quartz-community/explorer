@@ -29,6 +29,11 @@
   flex: 0 1 1.2rem;
 }
 @media not all and (max-width: 800px) {
+  // in a one-screen sidebar the explorer gives up its height before the components below it
+  // (recent notes and the like), and scrolls instead: they stay readable, as before Quartz 5.1
+  .explorer {
+    flex-shrink: 1000;
+  }
   // size the collapsed explorer to its title instead of a fixed 1.2rem, so
   // themes with a larger heading font-size / line-height don't clip it
   .explorer.collapsed {

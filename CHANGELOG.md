@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.4
+
+### Patch Changes
+
+- 873abb3: In a sidebar that is one screen tall, the explorer now shrinks and scrolls before the components below it, such as recent notes, which otherwise got squeezed into a small scroll area of their own.
+
 ## 1.0.3
 
 ### Patch Changes

@@ -399,8 +399,36 @@ async function handleNavOrRender(e) {
   }
 }
 
-document.addEventListener("nav", handleNavOrRender);
-document.addEventListener("render", handleNavOrRender);
+// "nav" and "render" can both fire for the same navigation (e.g. a plugin
+// that dispatches "render" right after "nav" to signal a content-index
+// update). Coalesce same-tick dispatches into a single tree rebuild instead
+// of rebuilding once per event, while still keeping the most recent url.
+let pendingDetail = null;
+let isRenderScheduled = false;
+
+function scheduleNavOrRender(e) {
+  const previousUrl = pendingDetail?.url;
+  pendingDetail = { ...(pendingDetail || {}), ...(e?.detail || {}) };
+  // Only fall back to the previous url if this event didn't carry one at
+  // all (e.g. "render" with no detail) — an explicit "" url (root page) is
+  // a real value and must not be discarded.
+  if (pendingDetail.url == null && previousUrl != null) {
+    pendingDetail.url = previousUrl;
+  }
+
+  if (!isRenderScheduled) {
+    isRenderScheduled = true;
+    queueMicrotask(() => {
+      const detail = pendingDetail;
+      isRenderScheduled = false;
+      pendingDetail = null;
+      handleNavOrRender({ detail });
+    });
+  }
+}
+
+document.addEventListener("nav", scheduleNavOrRender);
+document.addEventListener("render", scheduleNavOrRender);
 
 document.addEventListener("prenav", () => {
   const explorer = document.querySelector(".explorer-ul");

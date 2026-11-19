@@ -159,6 +159,16 @@ async function buildFileTrie(dataFns) {
   }
 }
 
+/** Mirror Quartz's `.open` folder state as Obsidian's `is-collapsed` (for Obsidian themes). */
+function syncCollapsed(folderContainer) {
+  const outer = folderContainer?.nextElementSibling;
+  const item = folderContainer?.parentElement;
+  if (!outer || !item) return;
+  const collapsed = !outer.classList.contains("open");
+  item.classList.toggle("is-collapsed", collapsed);
+  folderContainer.querySelector(".folder-icon")?.classList.toggle("is-collapsed", collapsed);
+}
+
 // Render generation to prevent race conditions
 let currentRenderGeneration = 0;
 
@@ -209,6 +219,7 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
     if ((!isCollapsed || folderIsPrefixOfCurrentSlug) && folderOuter) {
       folderOuter.classList.add("open");
     }
+    syncCollapsed(folderContainer);
 
     // Render children
     if (node.children && node.children.length > 0 && contentUl) {
@@ -223,7 +234,8 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
     const link = clone.querySelector("a");
     if (link) {
       link.href = resolveBasePath(node.data.slug);
-      link.textContent = node.displayName || node.slugSegment;
+      const linkText = link.querySelector(".nav-file-title-content") ?? link;
+      linkText.textContent = node.displayName || node.slugSegment;
       if (node.data.slug === currentSlug) {
         link.classList.add("active", "is-active");
       }
@@ -322,6 +334,7 @@ async function handleNavOrRender(e) {
           if (!childFolderContainer) return;
 
           childFolderContainer.classList.toggle("open");
+          syncCollapsed(folderContainer);
           const isCollapsed = !childFolderContainer.classList.contains("open");
 
           const folderPath = folderContainer.dataset.folderpath;
@@ -360,6 +373,7 @@ async function handleNavOrRender(e) {
             if (!childFolderContainer) return;
 
             childFolderContainer.classList.toggle("open");
+            syncCollapsed(folderContainer);
             const isCollapsed = !childFolderContainer.classList.contains("open");
 
             const savedState = JSON.parse(localStorage.getItem("fileTree") || "[]");

@@ -132,13 +132,17 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
         <div id={id} class="explorer-content" aria-expanded={false} role="group">
           <OverflowList class="explorer-ul" />
         </div>
+        {/* Obsidian's explorer classes (tree-item, nav-file, nav-folder, …) are kept alongside
+            Quartz's so Obsidian themes apply. */}
         <template id="template-file">
-          <li>
-            <a href="#" class="nav-file-title tree-item-self"></a>
+          <li class="tree-item nav-file">
+            <a href="#" class="nav-file-title tree-item-self">
+              <span class="tree-item-inner nav-file-title-content"></span>
+            </a>
           </li>
         </template>
         <template id="template-folder">
-          <li>
+          <li class="tree-item nav-folder">
             <div class="folder-container nav-folder-title tree-item-self">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -156,12 +160,12 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
               </svg>
               <div>
                 <button class="folder-button">
-                  <span class="folder-title"></span>
+                  <span class="folder-title tree-item-inner nav-folder-title-content"></span>
                 </button>
               </div>
             </div>
             <div class="folder-outer">
-              <ul class="content tree-item-children"></ul>
+              <ul class="content tree-item-children nav-folder-children"></ul>
             </div>
           </li>
         </template>

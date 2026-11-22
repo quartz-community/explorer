@@ -74,7 +74,7 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
 
     return (
       <div
-        class={classNames(displayClass, "explorer", "nav-files-container")}
+        class={classNames(displayClass, "explorer")}
         data-behavior={opts.folderClickBehavior}
         data-collapsed={opts.folderDefaultState}
         data-savestate={opts.useSavedState}
@@ -130,7 +130,9 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
           </svg>
         </button>
         <div id={id} class="explorer-content" aria-expanded={false} role="group">
-          <OverflowList class="explorer-ul" />
+          {/* Obsidian's .nav-files-container is the scrolling list of tree items, not the panel
+              with the header buttons: on the panel, themes padded the mobile toggle away. */}
+          <OverflowList class="explorer-ul nav-files-container" />
         </div>
         {/* Obsidian's explorer classes (tree-item, nav-file, nav-folder, …) are kept alongside
             Quartz's so Obsidian themes apply. */}

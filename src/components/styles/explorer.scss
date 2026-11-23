@@ -193,7 +193,12 @@ button.desktop-explorer h2 {
   backface-visibility: visible;
   flex-shrink: 0;
 }
-li:has(> .folder-outer:not(.open)) > .folder-container > svg {
+/* Nothing a theme may override (display, size): the theme's layer loses to unlayered CSS. */
+.folder-icon > svg {
+  vertical-align: middle;
+  transition: transform 0.3s ease;
+}
+li:has(> .folder-outer:not(.open)) > .folder-container > .folder-icon > svg {
   transform: rotate(-90deg);
 }
 .folder-icon:hover {

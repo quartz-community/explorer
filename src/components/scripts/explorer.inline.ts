@@ -169,6 +169,66 @@ function syncCollapsed(folderContainer) {
   folderContainer.querySelector(".folder-icon")?.classList.toggle("is-collapsed", collapsed);
 }
 
+/** Open or close a folder and remember its state. */
+function toggleFolder(folderContainer) {
+  const childFolderContainer = folderContainer?.nextElementSibling;
+  if (!childFolderContainer) return;
+  childFolderContainer.classList.toggle("open");
+  syncCollapsed(folderContainer);
+  const isCollapsed = !childFolderContainer.classList.contains("open");
+  const folderPath = folderContainer.dataset.folderpath;
+  const savedState = JSON.parse(localStorage.getItem("fileTree") || "[]");
+  const existingIndex = savedState.findIndex((item) => item.path === folderPath);
+  if (existingIndex >= 0) {
+    savedState[existingIndex].collapsed = isCollapsed;
+  } else {
+    savedState.push({ path: folderPath, collapsed: isCollapsed });
+  }
+  localStorage.setItem("fileTree", JSON.stringify(savedState));
+}
+
+/** Whether a theme hid or covered the collapse icon (as themes with folder icons may). */
+function indicatorHidden(folderContainer) {
+  const icon = folderContainer.querySelector(".folder-icon");
+  if (!icon || icon.getClientRects().length === 0) return true;
+  const svg = icon.querySelector("svg");
+  const style = getComputedStyle(icon);
+  if (style.visibility === "hidden") return true;
+  // A theme may hide the chevron and draw its own (`::before`) in the indicator.
+  const svgShown =
+    svg && svg.getClientRects().length > 0 && getComputedStyle(svg).visibility !== "hidden";
+  const before = getComputedStyle(icon, "::before");
+  const ownIcon =
+    before.content !== "none" && before.content !== "normal" && before.content !== '"\u200b"';
+  if (!svgShown && !ownIcon) return true;
+  // Some themes draw the folder title over it (Blue Topaz's folder icons).
+  const r = icon.getBoundingClientRect();
+  const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+  return !!hit && !icon.contains(hit) && folderContainer.contains(hit);
+}
+
+/**
+ * Obsidian's `data-path`: the vault path of a file (with extension) or folder. Themes key
+ * folder icons and colours on it (`.nav-folder-title[data-path^="1"]`).
+ */
+function vaultPath(data) {
+  const parts = (data?.filePath ?? "").split("/").filter(Boolean);
+  if (!parts.length) return undefined;
+  // filePath may be relative to the repository rather than the content folder.
+  const depth = (data.slug ?? "").split("/").filter(Boolean).length;
+  return parts.slice(Math.max(0, parts.length - depth)).join("/");
+}
+function folderVaultPath(node) {
+  const stack = [node];
+  while (stack.length) {
+    const n = stack.shift();
+    const p = vaultPath(n.data);
+    if (p) return p.split("/").slice(0, node.slugSegments.length).join("/");
+    stack.push(...n.children);
+  }
+  return undefined;
+}
+
 // Render generation to prevent race conditions
 let currentRenderGeneration = 0;
 
@@ -191,7 +251,10 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
     const contentUl = clone.querySelector(".content");
 
     if (folderTitle) folderTitle.textContent = node.displayName || node.slugSegment;
-    if (folderContainer) folderContainer.dataset.folderpath = node.slug;
+    if (folderContainer) {
+      folderContainer.dataset.folderpath = node.slug;
+      folderContainer.dataset.path = folderVaultPath(node) ?? currentPath;
+    }
 
     if (folderBehavior === "link" && folderButton) {
       const folderLink = document.createElement("a");
@@ -234,6 +297,8 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
     const link = clone.querySelector("a");
     if (link) {
       link.href = resolveBasePath(node.data.slug);
+      const path = vaultPath(node.data);
+      if (path) link.dataset.path = path;
       const linkText = link.querySelector(".nav-file-title-content") ?? link;
       linkText.textContent = node.displayName || node.slugSegment;
       if (node.data.slug === currentSlug) {
@@ -328,25 +393,8 @@ async function handleNavOrRender(e) {
       for (const icon of folderIcons) {
         const iconClickHandler = function (evt) {
           evt.stopPropagation();
-          const folderContainer = this.parentElement;
-          if (!folderContainer) return;
-          const childFolderContainer = folderContainer.nextElementSibling;
-          if (!childFolderContainer) return;
-
-          childFolderContainer.classList.toggle("open");
-          syncCollapsed(folderContainer);
-          const isCollapsed = !childFolderContainer.classList.contains("open");
-
-          const folderPath = folderContainer.dataset.folderpath;
-          const savedState = JSON.parse(localStorage.getItem("fileTree") || "[]");
-          const existingIndex = savedState.findIndex((item) => item.path === folderPath);
-
-          if (existingIndex >= 0) {
-            savedState[existingIndex].collapsed = isCollapsed;
-          } else {
-            savedState.push({ path: folderPath, collapsed: isCollapsed });
-          }
-          localStorage.setItem("fileTree", JSON.stringify(savedState));
+          evt.preventDefault();
+          toggleFolder(this.closest(".folder-container"));
         };
         icon.addEventListener("click", iconClickHandler);
         cleanupHandlers.push(() => icon.removeEventListener("click", iconClickHandler));
@@ -359,8 +407,6 @@ async function handleNavOrRender(e) {
           if (!folderContainer) return;
 
           const folderBehavior = explorer.dataset.behavior || "collapse";
-          const childFolderContainer = folderContainer.nextElementSibling;
-          const folderPath = folderContainer.dataset.folderpath;
 
           if (folderBehavior === "link") {
             // When folderBehavior is "link", the <button> has been replaced with an <a> tag
@@ -370,25 +416,28 @@ async function handleNavOrRender(e) {
             return;
           } else {
             evt.stopPropagation();
-            if (!childFolderContainer) return;
-
-            childFolderContainer.classList.toggle("open");
-            syncCollapsed(folderContainer);
-            const isCollapsed = !childFolderContainer.classList.contains("open");
-
-            const savedState = JSON.parse(localStorage.getItem("fileTree") || "[]");
-            const existingIndex = savedState.findIndex((item) => item.path === folderPath);
-
-            if (existingIndex >= 0) {
-              savedState[existingIndex].collapsed = isCollapsed;
-            } else {
-              savedState.push({ path: folderPath, collapsed: isCollapsed });
-            }
-            localStorage.setItem("fileTree", JSON.stringify(savedState));
+            toggleFolder(folderContainer);
           }
         };
         button.addEventListener("click", buttonClickHandler);
         cleanupHandlers.push(() => button.removeEventListener("click", buttonClickHandler));
+      }
+
+      // In Obsidian the whole row toggles a folder. Here the row outside the title does;
+      // so does the title when the theme hid the collapse indicator (otherwise a folder
+      // with "link" behaviour couldn't be opened at all).
+      const folderRows = explorer.getElementsByClassName("folder-container");
+      for (const row of folderRows) {
+        const rowClickHandler = function (evt) {
+          const link = evt.target.closest?.("a.folder-button");
+          if (link && !indicatorHidden(this)) return;
+          if (evt.ctrlKey || evt.metaKey || evt.shiftKey) return;
+          evt.preventDefault();
+          evt.stopPropagation();
+          toggleFolder(this);
+        };
+        row.addEventListener("click", rowClickHandler);
+        cleanupHandlers.push(() => row.removeEventListener("click", rowClickHandler));
       }
 
       if (typeof window !== "undefined" && window.addCleanup) {

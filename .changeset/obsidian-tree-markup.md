@@ -7,3 +7,5 @@ Folder rows use Obsidian's current markup, so Obsidian themes style the explorer
 Clicking a folder row outside its title toggles the folder, as in Obsidian. When a theme hides or covers the chevron, clicking the title toggles too, instead of opening the folder page.
 
 A folder's colour and type are set on its row, which the title inherits, so Obsidian themes' folder colours (`.nav-folder-title`) reach the folder names. Without a theme the explorer looks the same.
+
+Every folder's list of children starts with a hidden spacer item, as Obsidian's does: themes count on it (`> :only-child` means an empty folder; Lemons hid the only file of a folder).

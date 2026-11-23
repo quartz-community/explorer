@@ -173,7 +173,11 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
               </div>
             </div>
             <div class="folder-outer">
-              <ul class="content tree-item-children nav-folder-children"></ul>
+              {/* Obsidian starts every children container with an empty spacer; themes
+                  count on it (`> :only-child` is an empty folder, `:nth-child()`). */}
+              <ul class="content tree-item-children nav-folder-children">
+                <li class="tree-item-spacer" aria-hidden="true"></li>
+              </ul>
             </div>
           </li>
         </template>

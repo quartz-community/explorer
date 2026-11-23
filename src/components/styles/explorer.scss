@@ -189,6 +189,10 @@ button.desktop-explorer h2 {
   pointer-events: none;
 }
 
+.tree-item-spacer {
+  display: none !important;
+}
+
 .folder-icon {
   margin-right: 5px;
   color: var(--secondary);

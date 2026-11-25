@@ -138,28 +138,34 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
             Quartz's so Obsidian themes apply. */}
         <template id="template-file">
           <li class="tree-item nav-file">
-            <a href="#" class="nav-file-title tree-item-self">
+            <a href="#" class="nav-file-title tree-item-self tappable is-clickable">
               <span class="tree-item-inner nav-file-title-content"></span>
             </a>
           </li>
         </template>
         <template id="template-folder">
           <li class="tree-item nav-folder">
-            <div class="folder-container nav-folder-title tree-item-self">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="5 8 14 8"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="folder-icon nav-folder-collapse-indicator collapse-icon"
-              >
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
+            {/* Obsidian's markup (1.x): the collapse icon is a div around the chevron, so
+                theme rules for `.tree-item-icon` and `.collapse-icon svg` apply. Not the
+                pre-1.0 `.nav-folder-collapse-indicator`: rules for it are dead in Obsidian
+                (Catppuccin's would hide the chevron, the only way to open a folder). */}
+            <div class="folder-container nav-folder-title tree-item-self is-clickable mod-collapsible">
+              <div class="folder-icon tree-item-icon collapse-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="12"
+                  height="12"
+                  viewBox="5 8 14 8"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="svg-icon right-triangle"
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
               <div>
                 <button class="folder-button">
                   <span class="folder-title tree-item-inner nav-folder-title-content"></span>
@@ -167,7 +173,11 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
               </div>
             </div>
             <div class="folder-outer">
-              <ul class="content tree-item-children nav-folder-children"></ul>
+              {/* Obsidian starts every children container with an empty spacer; themes
+                  count on it (`> :only-child` is an empty folder, `:nth-child()`). */}
+              <ul class="content tree-item-children nav-folder-children">
+                <li class="tree-item-spacer" aria-hidden="true"></li>
+              </ul>
             </div>
           </li>
         </template>

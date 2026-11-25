@@ -146,25 +146,31 @@ button.desktop-explorer h2 {
   border-left: 1px solid var(--lightgray);
 }
 
+/* Quartz's folder colour and type are on the row, and the title inherits them: an
+   Obsidian theme styles the row (`.nav-folder-title`), and a colour set on the title
+   itself would win over the theme's whatever the cascade layer. */
 .folder-container {
   flex-direction: row;
   display: flex;
   align-items: center;
   user-select: none;
-}
-.folder-container div > a {
   color: var(--secondary);
   font-family: var(--headerFont);
   font-size: 0.95rem;
   font-weight: 600;
+}
+.folder-container:hover {
+  color: var(--tertiary);
+}
+.folder-container div > a {
+  color: inherit;
+  font: inherit;
   line-height: 1.5rem;
   display: inline-block;
 }
-.folder-container div > a:hover {
-  color: var(--tertiary);
-}
 .folder-container div > button {
-  color: var(--dark);
+  color: inherit;
+  font: inherit;
   background-color: transparent;
   border: none;
   text-align: left;
@@ -173,16 +179,18 @@ button.desktop-explorer h2 {
   padding-right: 0;
   display: flex;
   align-items: center;
-  font-family: var(--headerFont);
 }
 .folder-container div > button span {
-  font-size: 0.95rem;
-  display: inline-block;
-  color: var(--secondary);
-  font-weight: 600;
-  margin: 0;
+  color: inherit;
+  font: inherit;
   line-height: 1.5rem;
+  display: inline-block;
+  margin: 0;
   pointer-events: none;
+}
+
+.tree-item-spacer {
+  display: none !important;
 }
 
 .folder-icon {
@@ -193,7 +201,11 @@ button.desktop-explorer h2 {
   backface-visibility: visible;
   flex-shrink: 0;
 }
-li:has(> .folder-outer:not(.open)) > .folder-container > svg {
+.folder-icon > svg {
+  vertical-align: middle;
+  transition: transform 0.3s ease;
+}
+li:has(> .folder-outer:not(.open)) > .folder-container > .folder-icon > svg {
   transform: rotate(-90deg);
 }
 .folder-icon:hover {

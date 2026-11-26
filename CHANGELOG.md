@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.3
+
+### Patch Changes
+
+- 1bf87a6: `aria-expanded` is on the buttons that open and close the explorer, not on its `div` (where it isn't allowed), and the explorer's list id is `explorer-list-<n>` instead of the `list-0` that the table of contents and backlinks also used.
+
 ## 1.1.2
 
 ### Patch Changes

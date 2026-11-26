@@ -3,6 +3,7 @@ import { simplifySlug, resolveBasePath, slugifyFilePath } from "@quartz-communit
 import { processTrie } from "./order";
 import { compileSort } from "./sort";
 import { findRootFolder } from "./root";
+import { eventSlug } from "./slug";
 import {
   clearList,
   restoreScrollPosition,
@@ -329,7 +330,7 @@ function renderTree(
 async function handleNavOrRender(e) {
   const thisGeneration = ++currentRenderGeneration;
   try {
-    const currentSlug = (e.detail?.url || "").replace(/^\/+/, "");
+    const currentSlug = eventSlug(e.detail?.url, document.body?.dataset?.slug);
     const allExplorers = document.querySelectorAll("div.explorer");
     // After an SPA navigation: where the explorers were on the previous page. A re-render of
     // the same page ("render") keeps them where they are.

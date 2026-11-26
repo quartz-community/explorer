@@ -43,3 +43,29 @@ describe("Explorer Component", () => {
     expect(fadeA).not.toBe(fadeB);
   });
 });
+
+describe("Explorer phone header button", () => {
+  /** The aria-label of the button that opens the explorer on phones. */
+  const mobileLabel = (opts: Parameters<typeof Explorer>[0]) => {
+    const vnode = Explorer(opts)({ cfg: { locale: "en-US" }, fileData: {} } as never) as unknown;
+    let label: string | undefined;
+    const walk = (node: unknown) => {
+      if (Array.isArray(node)) return node.forEach(walk);
+      if (!node || typeof node !== "object") return;
+      const props = (node as { props?: Record<string, unknown> }).props ?? {};
+      if (props["data-mobile"] === true) label = props["aria-label"] as string;
+      walk(props.children);
+    };
+    walk(vnode);
+    return label;
+  };
+
+  it("is named after the explorer's title, so several explorers can be told apart", () => {
+    expect(mobileLabel({ title: "Café" })).toBe("Café");
+    expect(mobileLabel({ title: "Daily" })).toBe("Daily");
+  });
+
+  it("is named Explorer without a title", () => {
+    expect(mobileLabel({})).toBe("Explorer");
+  });
+});

@@ -63,7 +63,10 @@ interface ExplorerOptions {
   /** Whether to persist folder state in localStorage (default: true) */
   useSavedState: boolean;
 
-  /** Custom sort function for entries */
+  /** Sort rules, applied in sequence as tie-breakers (default: folders first, then by title) */
+  sort?: Array<SortKey | { by: SortKey; direction?: "asc" | "desc" }>;
+
+  /** Custom sort function for entries (TypeScript only); replaces `sort` */
   sortFn?: (a: FileTrieNode, b: FileTrieNode) => number;
 
   /** Custom filter function for entries */
@@ -76,6 +79,49 @@ interface ExplorerOptions {
   order?: Array<"filter" | "map" | "sort">;
 }
 ```
+
+### Sorting
+
+`sort` is a list of rules. Each folder's entries are sorted by the first rule; entries it considers equal are sorted by the next one, and so on. A rule is `{ by: <key>, direction: asc | desc }` (`direction` defaults to `asc`), or just the key.
+
+| `by`     | Sorts by                                                                                                                                                                          |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `folder` | Folders before files (`desc`: files before folders)                                                                                                                               |
+| `title`  | The displayed name (the page title), in natural order: `Note 2` before `Note 10`, case-insensitive                                                                                |
+| `name`   | The file or folder name, whatever the title or `mapFn` (e.g. numbered names: `10 Research`)                                                                                       |
+| `date`   | The page's date (as Quartz picks it: `defaultDateType`); a folder's is its index page's, else its newest page's. Needs a Quartz version that writes `date` to `contentIndex.json` |
+| `tag`    | The page's first tag                                                                                                                                                              |
+
+Entries without a date or tag come after the others, in either direction. The default is folders first, then by title:
+
+```yaml title="quartz.config.yaml"
+- source: "@quartz-community/explorer"
+  enabled: true
+  options:
+    sort:
+      - folder
+      - title
+```
+
+Newest first, folders still on top (a folder counts as new as its newest page):
+
+```yaml
+sort:
+  - folder
+  - { by: date, direction: desc }
+  - title
+```
+
+Grouped by first tag, newest first within a tag:
+
+```yaml
+sort:
+  - by: tag
+  - by: date
+    direction: desc
+```
+
+On a Quartz version without dates in the content index, the `date` rule finds no dates and the next rule decides. A `sortFn` set in TypeScript replaces `sort`. Sorting runs at the `sort` step of `order` (below), so with the default order it sees the names `mapFn` set.
 
 ### Order of filter, map and sort
 
@@ -105,7 +151,7 @@ By default, the Explorer:
 - Opens folders when clicked (navigates to index page)
 - Saves folder states between sessions
 - Excludes the "tags" folder from the tree
-- Sorts folders first, then files alphabetically (with numeric ordering)
+- Sorts folders first, then files alphabetically (with numeric ordering): `sort: [folder, title]`
 
 ## Development
 

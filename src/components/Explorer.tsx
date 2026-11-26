@@ -9,6 +9,9 @@ import { i18n } from "../i18n";
 import style from "./styles/explorer.scss";
 // @ts-expect-error - Inline script loaded as text by esbuild plugin
 import script from "./scripts/explorer.inline.ts";
+import { defaultSort, type SortOption } from "./scripts/sort";
+
+export type { SortKey, SortDirection, SortRule, SortOption } from "./scripts/sort";
 
 interface FileTrieNode {
   slugSegment?: string;
@@ -24,6 +27,12 @@ export interface ExplorerOptions {
   folderDefaultState: "collapsed" | "open";
   folderClickBehavior: "collapse" | "link";
   useSavedState: boolean;
+  /**
+   * How to sort each folder's entries: rules applied in sequence, each breaking the ties of the
+   * ones before it (default: folders first, then by title). Settable in YAML; see the README.
+   */
+  sort?: SortOption;
+  /** Custom sort function (TypeScript only); replaces `sort`. */
   sortFn?: (a: FileTrieNode, b: FileTrieNode) => number;
   filterFn?: (node: FileTrieNode) => boolean;
   mapFn?: (node: FileTrieNode) => FileTrieNode;
@@ -37,19 +46,7 @@ const defaultOptions: ExplorerOptions = {
   mapFn: (node: FileTrieNode) => {
     return node;
   },
-  sortFn: (a: FileTrieNode, b: FileTrieNode) => {
-    if ((!a.isFolder && !b.isFolder) || (a.isFolder && b.isFolder)) {
-      return (a.displayName || "").localeCompare(b.displayName || "", undefined, {
-        numeric: true,
-        sensitivity: "base",
-      });
-    }
-
-    if (!a.isFolder && b.isFolder) {
-      return 1;
-    }
-    return -1;
-  },
+  sort: defaultSort,
   filterFn: (node: FileTrieNode) => node.slugSegment !== "tags",
   order: ["filter", "map", "sort"],
 };
@@ -80,6 +77,7 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
         data-savestate={opts.useSavedState}
         data-data-fns={JSON.stringify({
           order: opts.order,
+          sort: opts.sort,
           sortFn: opts.sortFn?.toString(),
           filterFn: opts.filterFn?.toString(),
           mapFn: opts.mapFn?.toString(),

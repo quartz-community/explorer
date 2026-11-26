@@ -15,14 +15,16 @@ const OverflowList = ({
 let numLists = 0;
 
 export interface OverflowListFactory {
+  id: string;
   OverflowList: (props: JSX.HTMLAttributes<HTMLUListElement>) => VNode;
   overflowListAfterDOMLoaded: string;
 }
 
 export default (): OverflowListFactory => {
-  const id = `list-${numLists++}`;
+  const id = `explorer-list-${numLists++}`;
 
   return {
+    id,
     OverflowList: (props: JSX.HTMLAttributes<HTMLUListElement>) => (
       <OverflowList {...props} id={id} />
     ),

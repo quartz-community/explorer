@@ -123,6 +123,9 @@
       },
       "useSavedState": {
         "type": "boolean"
+      },
+      "order": {
+        "type": "array"
       }
     }
   },

@@ -2,6 +2,7 @@
 import { simplifySlug, resolveBasePath, slugifyFilePath } from "@quartz-community/utils/path";
 import { processTrie } from "./order";
 import { compileSort } from "./sort";
+import { findRootFolder } from "./root";
 import {
   clearList,
   restoreScrollPosition,
@@ -100,7 +101,7 @@ class FileTrieNode {
 const defaultFilterFn = (node) => node.slugSegment !== "tags";
 
 // Build trie from content index data
-async function buildFileTrie(dataFns) {
+async function buildFileTrie(dataFns, rootFolder) {
   try {
     const data = await fetchData;
 
@@ -118,7 +119,12 @@ async function buildFileTrie(dataFns) {
       return null;
     }
 
-    const trie = FileTrieNode.fromEntries(entries);
+    // `rootFolder`: show only that folder's contents
+    const trie = findRootFolder(FileTrieNode.fromEntries(entries), rootFolder);
+    if (!trie) {
+      console.warn(`[Explorer] rootFolder "${rootFolder}": no such folder`);
+      return null;
+    }
 
     // Parse data functions from string if provided
     let sortFn = compileSort(undefined);
@@ -227,9 +233,18 @@ function folderVaultPath(node) {
 let currentRenderGeneration = 0;
 
 // Render the file tree
-function renderTree(node, container, currentSlug, folderBehavior, savedState, pathPrefix = "") {
-  const folderTemplate = document.getElementById("template-folder");
-  const fileTemplate = document.getElementById("template-file");
+function renderTree(
+  node,
+  container,
+  currentSlug,
+  folderBehavior,
+  savedState,
+  pathPrefix = "",
+  templates,
+) {
+  // each explorer has its own templates (several explorers may be on a page)
+  const folderTemplate = templates?.folder;
+  const fileTemplate = templates?.file;
 
   if (!folderTemplate || !fileTemplate) return;
 
@@ -281,7 +296,15 @@ function renderTree(node, container, currentSlug, folderBehavior, savedState, pa
     // Render children
     if (node.children && node.children.length > 0 && contentUl) {
       for (const child of node.children) {
-        renderTree(child, contentUl, currentSlug, folderBehavior, savedState, currentPath);
+        renderTree(
+          child,
+          contentUl,
+          currentSlug,
+          folderBehavior,
+          savedState,
+          currentPath,
+          templates,
+        );
       }
     }
 
@@ -339,9 +362,13 @@ async function handleNavOrRender(e) {
       // Get data functions configuration
       const dataFns = explorer.dataset.dataFns;
       const folderBehavior = explorer.dataset.behavior || "collapse";
+      const templates = {
+        folder: explorer.querySelector("template.template-folder"),
+        file: explorer.querySelector("template.template-file"),
+      };
 
       // Build and render the tree
-      const trie = await buildFileTrie(dataFns);
+      const trie = await buildFileTrie(dataFns, explorer.dataset.rootFolder);
 
       // Check if another nav event started while we were fetching
       if (thisGeneration === currentRenderGeneration) {
@@ -351,7 +378,7 @@ async function handleNavOrRender(e) {
 
           const tree = document.createDocumentFragment();
           for (const child of trie.children) {
-            renderTree(child, tree, currentSlug, folderBehavior, savedState, "");
+            renderTree(child, tree, currentSlug, folderBehavior, savedState, "", templates);
           }
           end.before(tree);
         } else {

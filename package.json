@@ -107,6 +107,9 @@
       "title": {
         "type": "string"
       },
+      "rootFolder": {
+        "type": "string"
+      },
       "folderDefaultState": {
         "type": "enum",
         "values": [

@@ -47,12 +47,39 @@ ExternalPlugin.Explorer({
 });
 ```
 
+### Several explorers
+
+List the plugin once per explorer, each entry with its own options and layout. `rootFolder` shows only one folder's contents (a folder path as in your vault, or its slug), for example the full tree plus a second explorer for a notes folder:
+
+```yaml title="quartz.config.yaml"
+plugins:
+  - source: "@quartz-community/explorer"
+    enabled: true
+    layout:
+      position: left
+      priority: 50
+  - source: "@quartz-community/explorer"
+    enabled: true
+    options:
+      title: Notes
+      rootFolder: Notes/Daily Notes
+    layout:
+      position: left
+      priority: 55
+      display: desktop-only # one menu button on phones
+```
+
+Quartz notes that the plugin is listed more than once and renders one explorer per entry. Opened folders are remembered per folder, so a folder shown in both explorers is open or closed in both; scroll positions are kept per explorer. Options set in a TypeScript override apply to every entry.
+
 ## Configuration Options
 
 ```typescript
 interface ExplorerOptions {
   /** Title displayed above the explorer (default: the localized "Explorer") */
   title?: string;
+
+  /** Show only this folder's contents, e.g. "Notes" or "Notes/Daily Notes" (default: everything) */
+  rootFolder?: string;
 
   /** Default state for folders: "collapsed" or "open" (default: "collapsed") */
   folderDefaultState: "collapsed" | "open";

@@ -126,6 +126,9 @@
       },
       "order": {
         "type": "array"
+      },
+      "sort": {
+        "type": "array"
       }
     }
   },

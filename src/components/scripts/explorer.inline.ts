@@ -8,6 +8,7 @@ import {
   takeSavedScrollPositions,
 } from "./scroll";
 import { processTrie } from "./order";
+import { compileSort } from "./sort";
 
 // Simple trie node implementation for client-side
 class FileTrieNode {
@@ -96,18 +97,6 @@ class FileTrieNode {
   }
 }
 
-// Process and sort nodes
-const defaultSortFn = (a, b) => {
-  if ((!a.isFolder && !b.isFolder) || (a.isFolder && b.isFolder)) {
-    return a.displayName.localeCompare(b.displayName, undefined, {
-      numeric: true,
-      sensitivity: "base",
-    });
-  }
-  if (!a.isFolder && b.isFolder) return 1;
-  return -1;
-};
-
 const defaultFilterFn = (node) => node.slugSegment !== "tags";
 
 // Build trie from content index data
@@ -132,7 +121,7 @@ async function buildFileTrie(dataFns) {
     const trie = FileTrieNode.fromEntries(entries);
 
     // Parse data functions from string if provided
-    let sortFn = defaultSortFn;
+    let sortFn = compileSort(undefined);
     let filterFn = defaultFilterFn;
     let mapFn = null;
     let order;
@@ -141,6 +130,8 @@ async function buildFileTrie(dataFns) {
       try {
         const parsed = JSON.parse(dataFns);
         order = parsed.order;
+        // a sortFn (TypeScript) replaces the `sort` rules
+        sortFn = compileSort(parsed.sort);
         if (parsed.sortFn) {
           sortFn = new Function("a", "b", "return (" + parsed.sortFn + ")(a, b)");
         }

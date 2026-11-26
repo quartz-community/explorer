@@ -63,7 +63,10 @@ interface ExplorerOptions {
   /** Whether to persist folder state in localStorage (default: true) */
   useSavedState: boolean;
 
-  /** Custom sort function for entries */
+  /** Sort rules, applied in sequence as tie-breakers (default: folders first, then by title) */
+  sort?: Array<SortKey | { by: SortKey; direction?: "asc" | "desc"; firstTagOnly?: boolean }>;
+
+  /** Custom sort function for entries (TypeScript only); replaces `sort` */
   sortFn?: (a: FileTrieNode, b: FileTrieNode) => number;
 
   /** Custom filter function for entries */
@@ -76,6 +79,52 @@ interface ExplorerOptions {
   order?: Array<"filter" | "map" | "sort">;
 }
 ```
+
+### Sorting
+
+`sort` is a list of rules. Each folder's entries are sorted by the first rule; entries it considers equal are sorted by the next one, and so on. A rule is `{ by: <key>, direction: asc | desc }` (`direction` defaults to `asc`), or just the key. As in [Bases](https://help.obsidian.md/bases/syntax) views, `direction` may also be written `ASC` / `DESC`, and `by` as `property`.
+
+| `by`     | Sorts by                                                                                                                                                                                                                                                                                                                                                                               |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `folder` | Folders before files (`desc`: files before folders)                                                                                                                                                                                                                                                                                                                                    |
+| `title`  | The displayed name (the page title), in natural order: `Note 2` before `Note 10`, case-insensitive                                                                                                                                                                                                                                                                                     |
+| `name`   | The file or folder name, whatever the title or `mapFn` (e.g. numbered names: `10 Research`)                                                                                                                                                                                                                                                                                            |
+| `date`   | The page's date, as Quartz picks it (`defaultDateType`: created, modified or published). A folder's date is its index page's date when that page sets one in its frontmatter, else the date of its newest page. Needs a Quartz version that writes `date` to `contentIndex.json` (and `dateFromFrontmatter`, for the index-page rule; without it folders always use their newest page) |
+| `tag`    | The page's tags in the order they are written (see below)                                                                                                                                                                                                                                                                                                                              |
+
+Tags are compared like words letter by letter: first tags against each other; if those are equal, second tags; and so on. A tag list that is the start of the other (`[news]` vs `[news, tech]`) comes first. With `firstTagOnly: true` (`{ by: tag, firstTagOnly: true }`), only the first tags are compared and entries sharing a first tag are left to the next rule. Tag names compare in natural, case-insensitive order.
+
+Entries without a date or tags come after the others, in either direction. The default is folders first, then by title:
+
+```yaml title="quartz.config.yaml"
+- source: "@quartz-community/explorer"
+  enabled: true
+  options:
+    sort:
+      - folder
+      - title
+```
+
+Newest first, folders still on top (a folder counts as new as its newest page):
+
+```yaml
+sort:
+  - folder
+  - { by: date, direction: desc }
+  - title
+```
+
+Grouped by first tag, newest first within a tag:
+
+```yaml
+sort:
+  - by: tag
+    firstTagOnly: true
+  - by: date
+    direction: desc
+```
+
+On a Quartz version without dates in the content index, the `date` rule finds no dates and the next rule decides. A `sortFn` set in TypeScript replaces `sort`. Sorting runs at the `sort` step of `order` (below), so with the default order it sees the names `mapFn` set.
 
 ### Order of filter, map and sort
 
@@ -105,7 +154,7 @@ By default, the Explorer:
 - Opens folders when clicked (navigates to index page)
 - Saves folder states between sessions
 - Excludes the "tags" folder from the tree
-- Sorts folders first, then files alphabetically (with numeric ordering)
+- Sorts folders first, then files alphabetically (with numeric ordering): `sort: [folder, title]`
 
 ## Development
 

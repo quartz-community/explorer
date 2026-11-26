@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.2.0
+
+### Minor Changes
+
+- e7fa5e5: Several explorers on a page (#12): new `rootFolder` option to show only one folder's contents (e.g. `rootFolder: Notes`), for a second explorer listed as another plugin entry. Explorers now coexist: the explorer script runs once for all of them (each instance included a copy that rendered every explorer), each explorer uses its own templates (no duplicate ids), and each keeps its own scroll position.
+- 2e2e624: New `sort` option: sort the explorer from `quartz.config.yaml` with a list of rules applied in sequence as tie-breakers, e.g. `sort: [folder, { by: date, direction: desc }, title]` (#6). Keys: `folder`, `title`, `name`, `date`, `tag` (tag lists compared tag by tag; `firstTagOnly: true` for the first tag only). `direction` is `asc`/`desc` (`ASC`/`DESC` and `property` for `by` are accepted too, as in Bases views). The default, `[folder, title]`, is the previous order. Sorting by `date` needs a Quartz version that writes page dates to `contentIndex.json`; without them the next rule decides. A folder's date is its index page's frontmatter date, else its newest page's. A `sortFn` set in TypeScript still replaces `sort`.
+
+### Patch Changes
+
+- 3de5ed9: The `order` option is applied: `filterFn`, `mapFn` and `sortFn` now run in the configured order (it was ignored, always filter → map → sort). Sorting before mapping keeps the original names for the sort, e.g. Johnny.Decimal prefixes stripped by `mapFn` (#3). `order` can be set in `quartz.config.yaml`.
+- 3fb8602: Scrolling fixes:
+
+  - The scroll fade at the bottom of a long explorer works again: re-rendering the tree replaced the `overflow-end` marker the fade watches and put the tree after it (#16).
+  - SPA navigation keeps the explorer's scroll position also when the sidebar scrolls rather than the list (`layout.sidebars.left: scroll`): the position is saved and restored on whatever element scrolls the explorer (#14). With several explorers, each keeps its own.
+  - Opening a page directly scrolls only the explorer to the current page; it scrolled the page itself too, which then opened partway down (PR #15).
+
 ## 1.1.3
 
 ### Patch Changes

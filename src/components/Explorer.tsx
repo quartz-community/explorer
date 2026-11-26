@@ -24,6 +24,11 @@ interface FileTrieNode {
 
 export interface ExplorerOptions {
   title?: string;
+  /**
+   * Show only this folder's contents (a folder path, e.g. `Notes/Daily`, or its slug), e.g.
+   * for a second explorer next to the full one.
+   */
+  rootFolder?: string;
   folderDefaultState: "collapsed" | "open";
   folderClickBehavior: "collapse" | "link";
   useSavedState: boolean;
@@ -53,10 +58,6 @@ const defaultOptions: ExplorerOptions = {
 
 let numExplorers = 0;
 
-function concatenateResources(...resources: (string | undefined)[]): string {
-  return resources.filter((r): r is string => !!r).join("\n");
-}
-
 export default ((userOpts?: Partial<ExplorerOptions>) => {
   const opts: ExplorerOptions = { ...defaultOptions, ...userOpts };
   const { OverflowList, overflowListAfterDOMLoaded } = OverflowListFactory();
@@ -75,6 +76,7 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
         data-behavior={opts.folderClickBehavior}
         data-collapsed={opts.folderDefaultState}
         data-savestate={opts.useSavedState}
+        data-root-folder={opts.rootFolder || undefined}
         data-data-fns={JSON.stringify({
           order: opts.order,
           sort: opts.sort,
@@ -134,14 +136,14 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
         </div>
         {/* Obsidian's explorer classes (tree-item, nav-file, nav-folder, …) are kept alongside
             Quartz's so Obsidian themes apply. */}
-        <template id="template-file">
+        <template class="template-file">
           <li class="tree-item nav-file">
             <a href="#" class="nav-file-title tree-item-self tappable is-clickable">
               <span class="tree-item-inner nav-file-title-content"></span>
             </a>
           </li>
         </template>
-        <template id="template-folder">
+        <template class="template-folder">
           <li class="tree-item nav-folder">
             {/* Obsidian's markup (1.x): the collapse icon is a div around the chevron, so
                 theme rules for `.tree-item-icon` and `.collapse-icon svg` apply. Not the
@@ -184,6 +186,9 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
   };
 
   ExplorerComponent.css = style;
-  ExplorerComponent.afterDOMLoaded = concatenateResources(script, overflowListAfterDOMLoaded);
+  // Separate resources: Quartz includes identical scripts once, so with several explorers the
+  // explorer's script (which renders every explorer on the page) runs once, while each list
+  // keeps its own scroll-fade script.
+  ExplorerComponent.afterDOMLoaded = [script, overflowListAfterDOMLoaded];
   return ExplorerComponent;
 }) satisfies QuartzComponentConstructor;

@@ -32,6 +32,14 @@ describe("Explorer Component", () => {
     const component = Explorer({});
 
     expect(component.afterDOMLoaded).toBeDefined();
-    expect(typeof component.afterDOMLoaded).toBe("string");
+    expect(Array.isArray(component.afterDOMLoaded)).toBe(true);
+  });
+
+  it("shares the explorer script between instances, not the scroll-fade script (#12)", () => {
+    const [scriptA, fadeA] = Explorer({}).afterDOMLoaded as string[];
+    const [scriptB, fadeB] = Explorer({ rootFolder: "notes" }).afterDOMLoaded as string[];
+    // Quartz includes identical resources once: the explorer script then runs once
+    expect(scriptA).toBe(scriptB);
+    expect(fadeA).not.toBe(fadeB);
   });
 });

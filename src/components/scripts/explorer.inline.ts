@@ -377,7 +377,7 @@ async function handleNavOrRender(e) {
           const nearestExplorer = this.closest(".explorer");
           if (!nearestExplorer) return;
           const explorerCollapsed = nearestExplorer.classList.toggle("collapsed");
-          nearestExplorer.setAttribute("aria-expanded", explorerCollapsed ? "false" : "true");
+          setToggleExpanded(nearestExplorer, !explorerCollapsed);
 
           if (!explorerCollapsed) {
             document.documentElement.classList.add("mobile-no-scroll");
@@ -453,12 +453,20 @@ async function handleNavOrRender(e) {
 
       if (mobileExplorer.checkVisibility && mobileExplorer.checkVisibility()) {
         explorer.classList.add("collapsed");
-        explorer.setAttribute("aria-expanded", "false");
+        setToggleExpanded(explorer, false);
         document.documentElement.classList.remove("mobile-no-scroll");
       }
     }
   } catch (err) {
     console.error("[Explorer] Fatal error in nav handler:", err);
+  }
+}
+
+// `aria-expanded` belongs on the buttons that open and close the explorer (it
+// isn't allowed on the explorer's plain div).
+function setToggleExpanded(explorer, expanded) {
+  for (const toggle of explorer.querySelectorAll(".explorer-toggle")) {
+    toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
   }
 }
 

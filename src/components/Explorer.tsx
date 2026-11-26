@@ -129,7 +129,7 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
             <polyline points="6 9 12 15 18 9"></polyline>
           </svg>
         </button>
-        <div id={id} class="explorer-content" aria-expanded={false} role="group">
+        <div id={id} class="explorer-content" role="group">
           {/* Obsidian's .nav-files-container is the scrolling list of tree items, not the panel
               with the header buttons: on the panel, themes padded the mobile toggle away. */}
           <OverflowList class="explorer-ul nav-files-container" />

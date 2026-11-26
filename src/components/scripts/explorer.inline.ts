@@ -1,5 +1,12 @@
 // @ts-nocheck - Required for inline scripts that run in browser context
 import { simplifySlug, resolveBasePath, slugifyFilePath } from "@quartz-community/utils/path";
+import {
+  clearList,
+  restoreScrollPosition,
+  saveScrollPositions,
+  scrollPositions,
+  takeSavedScrollPositions,
+} from "./scroll";
 import { processTrie } from "./order";
 
 // Simple trie node implementation for client-side
@@ -310,6 +317,12 @@ async function handleNavOrRender(e) {
   try {
     const currentSlug = (e.detail?.url || "").replace(/^\/+/, "");
     const allExplorers = document.querySelectorAll("div.explorer");
+    // After an SPA navigation: where the explorers were on the previous page. A re-render of
+    // the same page ("render") keeps them where they are.
+    const scrollTo =
+      e.type === "render"
+        ? scrollPositions(Array.from(allExplorers, (x) => x.querySelector(".explorer-ul")))
+        : takeSavedScrollPositions();
 
     const savedState = {};
     try {
@@ -321,15 +334,16 @@ async function handleNavOrRender(e) {
       console.error("[Explorer] Error loading saved state:", e);
     }
 
-    for (const explorer of allExplorers) {
+    for (const [explorerIndex, explorer] of Array.from(allExplorers).entries()) {
       const explorerUl = explorer.querySelector(".explorer-ul");
       if (!explorerUl) {
         console.warn("[Explorer] No explorer-ul found");
         continue;
       }
 
-      // Clear existing content
-      explorerUl.innerHTML = '<li class="overflow-end"></li>';
+      // Clear existing content. The `.overflow-end` marker stays, last: the scroll fade
+      // (OverflowList) observes it, and replacing it left the fade watching a detached one (#16).
+      clearList(explorerUl);
 
       // Get data functions configuration
       const dataFns = explorer.dataset.dataFns;
@@ -342,25 +356,19 @@ async function handleNavOrRender(e) {
       if (thisGeneration === currentRenderGeneration) {
         if (trie && trie.children && trie.children.length > 0) {
           // Clear again before rendering to ensure clean state
-          explorerUl.innerHTML = '<li class="overflow-end"></li>';
+          const end = clearList(explorerUl);
 
+          const tree = document.createDocumentFragment();
           for (const child of trie.children) {
-            renderTree(child, explorerUl, currentSlug, folderBehavior, savedState, "");
+            renderTree(child, tree, currentSlug, folderBehavior, savedState, "");
           }
+          end.before(tree);
         } else {
           console.warn("[Explorer] No trie or empty children");
         }
 
-        // restore scrollTop position or scroll to active element
-        const scrollTop = sessionStorage.getItem("explorerScrollTop");
-        if (scrollTop) {
-          explorerUl.scrollTop = parseInt(scrollTop, 10);
-        } else {
-          const activeElement = explorerUl.querySelector(".active");
-          if (activeElement) {
-            activeElement.scrollIntoView({ behavior: "smooth" });
-          }
-        }
+        // restore the scroll position, or bring the current page into view
+        restoreScrollPosition(explorerUl, scrollTo[explorerIndex]);
       }
       // (a newer nav event started while fetching: it renders the tree instead)
 
@@ -470,7 +478,6 @@ document.addEventListener("nav", handleNavOrRender);
 document.addEventListener("render", handleNavOrRender);
 
 document.addEventListener("prenav", () => {
-  const explorer = document.querySelector(".explorer-ul");
-  if (!explorer) return;
-  sessionStorage.setItem("explorerScrollTop", explorer.scrollTop.toString());
+  const explorers = document.querySelectorAll("div.explorer");
+  saveScrollPositions(Array.from(explorers, (x) => x.querySelector(".explorer-ul")));
 });

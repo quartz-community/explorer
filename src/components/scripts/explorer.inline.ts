@@ -1,5 +1,6 @@
 // @ts-nocheck - Required for inline scripts that run in browser context
 import { simplifySlug, resolveBasePath, slugifyFilePath } from "@quartz-community/utils/path";
+import { processTrie } from "./order";
 
 // Simple trie node implementation for client-side
 class FileTrieNode {
@@ -102,13 +103,6 @@ const defaultSortFn = (a, b) => {
 
 const defaultFilterFn = (node) => node.slugSegment !== "tags";
 
-function processTrie(trie, sortFn, filterFn, mapFn) {
-  if (filterFn) trie.filter(filterFn);
-  if (mapFn) trie.map(mapFn);
-  if (sortFn) trie.sort(sortFn);
-  return trie;
-}
-
 // Build trie from content index data
 async function buildFileTrie(dataFns) {
   try {
@@ -134,10 +128,12 @@ async function buildFileTrie(dataFns) {
     let sortFn = defaultSortFn;
     let filterFn = defaultFilterFn;
     let mapFn = null;
+    let order;
 
     if (dataFns) {
       try {
         const parsed = JSON.parse(dataFns);
+        order = parsed.order;
         if (parsed.sortFn) {
           sortFn = new Function("a", "b", "return (" + parsed.sortFn + ")(a, b)");
         }
@@ -152,7 +148,7 @@ async function buildFileTrie(dataFns) {
       }
     }
 
-    return processTrie(trie, sortFn, filterFn, mapFn);
+    return processTrie(trie, { sortFn, filterFn, mapFn }, order);
   } catch (e) {
     console.error("Error building file trie:", e);
     return null;

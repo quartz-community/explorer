@@ -77,6 +77,26 @@ interface ExplorerOptions {
 }
 ```
 
+### Order of filter, map and sort
+
+`order` sets the order in which `filterFn`, `mapFn` and `sortFn` run (default `["filter", "map", "sort"]`). It can be set in YAML. Sort before mapping when `mapFn` changes the names the sort compares, for example to strip [Johnny.Decimal](https://johnnydecimal.com/) prefixes (`10 Research` → `Research`) while keeping the numbered order:
+
+```yaml title="quartz.config.yaml"
+- source: "@quartz-community/explorer"
+  enabled: true
+  options:
+    order: [filter, sort, map]
+```
+
+```ts title="quartz.ts (override)"
+ExternalPlugin.Explorer({
+  mapFn: (node) => {
+    node.displayName = node.displayName.replace(/^\d+\s+/, "");
+    return node;
+  },
+});
+```
+
 ## Default Behavior
 
 By default, the Explorer:

@@ -75,9 +75,14 @@ describe("sort option", () => {
     expect(names(sorted(nodes, [{ by: "date", direction: "desc" }, "title"]))).toEqual(["a", "b"]);
   });
 
-  it("dates a folder by its index page, else its newest page", () => {
-    const withIndex = folder("Indexed", [file("x", { date: "2026-09-01" })], {
+  it("dates a folder by its index page's frontmatter date, else its newest page", () => {
+    const fromFrontmatter = folder("Indexed", [file("x", { date: "2026-09-01" })], {
       date: "2020-01-01",
+      dateFromFrontmatter: true,
+    });
+    // the index page's date did not come from frontmatter (or older Quartz without the flag)
+    const notFromFrontmatter = folder("Unflagged", [file("w", { date: "2024-01-01" })], {
+      date: "2027-01-01",
     });
     const withoutIndex = folder("Plain", [
       file("y", { date: "2025-01-01" }),
@@ -85,8 +90,52 @@ describe("sort option", () => {
     ]);
     const loose = file("Loose", { date: "2025-06-01" });
     expect(
-      names(sorted([withIndex, withoutIndex, loose], [{ by: "date", direction: "desc" }])),
-    ).toEqual(["Plain", "Loose", "Indexed"]);
+      names(
+        sorted(
+          [fromFrontmatter, notFromFrontmatter, withoutIndex, loose],
+          [{ by: "date", direction: "desc" }],
+        ),
+      ),
+    ).toEqual(["Plain", "Loose", "Unflagged", "Indexed"]);
+  });
+
+  it("compares tag lists element by element; firstTagOnly compares the first tag", () => {
+    const nodes = [
+      file("A", { tags: ["news", "tech"] }),
+      file("B", { tags: ["news"] }),
+      file("C", { tags: ["news", "art"] }),
+      file("D", { tags: ["guide", "zoo"] }),
+      file("E"),
+    ];
+    expect(names(sorted(nodes, ["tag"]))).toEqual(["D", "B", "C", "A", "E"]);
+    expect(names(sorted(nodes, [{ by: "tag", direction: "desc" }]))).toEqual([
+      "A",
+      "C",
+      "B",
+      "D",
+      "E",
+    ]);
+    // only the first tag: news ties, the next rule (title, desc) decides
+    expect(
+      names(
+        sorted(nodes, [
+          { by: "tag", firstTagOnly: true },
+          { by: "title", direction: "desc" },
+        ]),
+      ),
+    ).toEqual(["D", "C", "B", "A", "E"]);
+  });
+
+  it("accepts Bases-style spellings: ASC/DESC and property", () => {
+    expect(
+      resolveSort([
+        { property: "date", direction: "DESC" },
+        { by: "title", direction: "ASC" },
+      ]),
+    ).toEqual([
+      { by: "date", direction: "desc" },
+      { by: "title", direction: "asc" },
+    ]);
   });
 
   it("sorts by file name, unaffected by titles", () => {

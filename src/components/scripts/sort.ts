@@ -2,7 +2,8 @@
 
 /** What to compare. */
 export type SortKey = "folder" | "title" | "name" | "date" | "tag";
-export type SortDirection = "asc" | "desc";
+/** `ASC` / `DESC` (as in Bases views) are accepted too. */
+export type SortDirection = "asc" | "desc" | "ASC" | "DESC";
 
 /**
  * One sort rule. Rules apply in sequence: each later rule only orders entries the earlier
@@ -11,14 +12,21 @@ export type SortDirection = "asc" | "desc";
  * - `folder`: folders before files (`desc`: files before folders)
  * - `title`: the displayed name (the page title), natural order: "Note 2" before "Note 10"
  * - `name`: the file or folder name, unaffected by titles or `mapFn`
- * - `date`: the page's date; a folder's is its index page's, else its newest page's
- * - `tag`: the page's first tag
+ * - `date`: the page's date. A folder's is its index page's when that date comes from the
+ *   index page's frontmatter (`dateFromFrontmatter` in the content index), else its newest
+ *   page's.
+ * - `tag`: the page's tags, compared in the order they are written: first tags, then (on a
+ *   tie) second tags, and so on; a list that is a prefix of the other comes first. With
+ *   `firstTagOnly`, only the first tags are compared.
  *
- * Entries without a date or tag come after the others, in either direction.
+ * Entries without a date or tags come after the others, in either direction. `direction` is
+ * also accepted in capitals (`ASC`/`DESC`) and `by` as `property`, as in Bases views.
  */
 export interface SortRule {
   by: SortKey;
   direction?: SortDirection;
+  /** `tag` only: compare just the first tag. */
+  firstTagOnly?: boolean;
 }
 
 /** A rule, or just its key (ascending). */
@@ -44,10 +52,16 @@ export function resolveSort(option: unknown): SortRule[] {
   const list = Array.isArray(option) ? option : [option];
   const rules: SortRule[] = [];
   for (const item of list) {
-    const rule: Partial<SortRule> =
-      typeof item === "string" ? { by: item as SortKey } : ((item as Partial<SortRule>) ?? {});
-    const direction = rule.direction ?? "asc";
-    if (!sortKeys.includes(rule.by as SortKey) || (direction !== "asc" && direction !== "desc")) {
+    const raw: Record<string, unknown> =
+      typeof item === "string"
+        ? { by: item }
+        : item && typeof item === "object"
+          ? (item as Record<string, unknown>)
+          : {};
+    const by = raw.by ?? raw.property;
+    const direction =
+      typeof raw.direction === "string" ? raw.direction.toLowerCase() : (raw.direction ?? "asc");
+    if (!sortKeys.includes(by as SortKey) || (direction !== "asc" && direction !== "desc")) {
       console.warn(
         `[Explorer] ignoring sort rule ${JSON.stringify(item)}: "by" is one of ${sortKeys.join(
           ", ",
@@ -55,7 +69,9 @@ export function resolveSort(option: unknown): SortRule[] {
       );
       continue;
     }
-    rules.push({ by: rule.by as SortKey, direction });
+    const rule: SortRule = { by: by as SortKey, direction };
+    if (by === "tag" && raw.firstTagOnly === true) rule.firstTagOnly = true;
+    rules.push(rule);
   }
   return rules.length > 0 ? rules : defaultSort;
 }
@@ -78,9 +94,20 @@ function parseDate(value: unknown): number | undefined {
   return undefined;
 }
 
-function firstTag(node: SortableNode): string | undefined {
+function tagsOf(node: SortableNode): string[] | undefined {
   const tags = node.data?.tags;
-  return Array.isArray(tags) && typeof tags[0] === "string" ? tags[0] : undefined;
+  if (!Array.isArray(tags)) return undefined;
+  const strings = tags.filter((t): t is string => typeof t === "string");
+  return strings.length > 0 ? strings : undefined;
+}
+
+/** Tag lists compared element by element; a prefix comes first. */
+function compareTags(a: string[], b: string[]): number {
+  for (let i = 0; i < Math.min(a.length, b.length); i++) {
+    const result = collator.compare(a[i]!, b[i]!);
+    if (result !== 0) return result;
+  }
+  return a.length - b.length;
 }
 
 /** Compare two present values; a missing one sorts last whatever the direction. */
@@ -103,8 +130,12 @@ export function compileSort(option: unknown): (a: SortableNode, b: SortableNode)
   const rules = resolveSort(option);
   const folderDates = new WeakMap<SortableNode, number | undefined>();
   const dateOf = (node: SortableNode): number | undefined => {
-    const own = parseDate(node.data?.date);
-    if (own !== undefined || !node.isFolder) return own;
+    if (!node.isFolder) return parseDate(node.data?.date);
+    // a folder: its index page's date if set in its frontmatter, else its newest page's
+    if (node.data?.dateFromFrontmatter === true) {
+      const own = parseDate(node.data.date);
+      if (own !== undefined) return own;
+    }
     if (folderDates.has(node)) return folderDates.get(node);
     let newest: number | undefined;
     for (const child of node.children) {
@@ -116,7 +147,7 @@ export function compileSort(option: unknown): (a: SortableNode, b: SortableNode)
   };
 
   return (a, b) => {
-    for (const { by, direction = "asc" } of rules) {
+    for (const { by, direction = "asc", firstTagOnly } of rules) {
       let result = 0;
       if (by === "folder") {
         result = a.isFolder === b.isFolder ? 0 : a.isFolder ? -1 : 1;
@@ -130,7 +161,11 @@ export function compileSort(option: unknown): (a: SortableNode, b: SortableNode)
       } else if (by === "date") {
         result = compareOptional(dateOf(a), dateOf(b), direction, (x, y) => x - y);
       } else if (by === "tag") {
-        result = compareOptional(firstTag(a), firstTag(b), direction, collator.compare);
+        const tags = (node: SortableNode) => {
+          const list = tagsOf(node);
+          return list && firstTagOnly ? list.slice(0, 1) : list;
+        };
+        result = compareOptional(tags(a), tags(b), direction, compareTags);
       }
       if (result !== 0) return result;
     }

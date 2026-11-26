@@ -90,7 +90,8 @@ export default ((userOpts?: Partial<ExplorerOptions>) => {
           class="explorer-toggle mobile-explorer hide-until-loaded"
           data-mobile={true}
           aria-controls={id}
-          aria-label={i18n(cfg?.locale ?? "en-US").components.explorer.title}
+          // its own title: with several explorers, each phone header button says which it opens
+          aria-label={title}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

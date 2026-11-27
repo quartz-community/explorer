@@ -38,7 +38,10 @@ describe("order", () => {
     expect(resolveOrder("sort")).toEqual(["filter", "map", "sort"]);
     expect(resolveOrder(["bogus"])).toEqual(["filter", "map", "sort"]);
     expect(resolveOrder(["sort", "bogus", "filter"])).toEqual(["sort", "filter"]);
-    expect(warn).toHaveBeenCalled();
+    expect(warn.mock.calls.map((c) => c[0])).toEqual([
+      '[Explorer] unknown step in "order": "bogus"',
+      '[Explorer] unknown step in "order": "bogus"',
+    ]);
     warn.mockRestore();
   });
 });

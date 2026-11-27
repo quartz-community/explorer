@@ -95,13 +95,23 @@ describe("the explorer's file tree", () => {
     expect(shape(trie)).toEqual([["b", ["A", "Z"]], "C"]);
   });
 
-  // bug: a page `notes.md` beside a folder `notes/` becomes that folder's page (and leaves the
-  // explorer) when the content index lists it before the folder's pages; listed after them, it
-  // is shown beside the folder. Obsidian shows both.
-  it.fails("shows a page beside a folder of the same name, whatever the order", () => {
+  it("shows a page beside a folder of the same name, whatever the order", () => {
     const after = FileTrieNode.fromEntries([page("notes/x.md"), page("notes.md")]);
     expect(shape(after)).toEqual([["notes", ["x"]], "notes"]);
     const before = FileTrieNode.fromEntries([page("notes.md"), page("notes/x.md")]);
-    expect(shape(before)).toEqual(expect.arrayContaining([["notes", ["x"]], "notes"]));
+    expect(shape(before)).toEqual(["notes", ["notes", ["x"]]]);
+    const [notesPage, notesFolder] = before.children;
+    expect(notesPage!.slug).toBe("notes");
+    expect(notesFolder!.slug).toBe("notes/index");
+    expect(notesFolder!.data).toBeNull();
+  });
+
+  it("still gives a folder its index page beside a page of the same name", () => {
+    const trie = FileTrieNode.fromEntries([
+      page("notes.md"),
+      page("notes/index.md", { title: "All notes" }),
+      page("notes/x.md"),
+    ]);
+    expect(shape(trie)).toEqual(["notes", ["All notes", ["x"]]]);
   });
 });

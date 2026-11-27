@@ -67,7 +67,9 @@ export class FileTrieNode {
         this.makeChild(path, file);
       }
     } else {
-      let child = this.children.find((c) => c.slugSegment === segment);
+      // A folder, not a page of the same name: `notes.md` and `notes/` are separate entries, as
+      // in Obsidian, whichever the content index lists first.
+      let child = this.children.find((c) => c.isFolder && c.slugSegment === segment);
       if (!child) {
         child = this.makeChild(path, undefined);
       }

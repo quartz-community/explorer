@@ -4,6 +4,7 @@ import { processTrie } from "./order";
 import { compileSort } from "./sort";
 import { findRootFolder } from "./root";
 import { eventSlug } from "./slug";
+import { folderVaultPath, vaultPath } from "./vaultPath";
 import {
   STORAGE_KEY,
   folderStartsCollapsed,
@@ -217,28 +218,6 @@ function indicatorHidden(folderContainer) {
   const r = icon.getBoundingClientRect();
   const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
   return !!hit && !icon.contains(hit) && folderContainer.contains(hit);
-}
-
-/**
- * Obsidian's `data-path`: the vault path of a file (with extension) or folder. Themes key
- * folder icons and colours on it (`.nav-folder-title[data-path^="1"]`).
- */
-function vaultPath(data) {
-  const parts = (data?.filePath ?? "").split("/").filter(Boolean);
-  if (!parts.length) return undefined;
-  // filePath may be relative to the repository rather than the content folder.
-  const depth = (data.slug ?? "").split("/").filter(Boolean).length;
-  return parts.slice(Math.max(0, parts.length - depth)).join("/");
-}
-function folderVaultPath(node) {
-  const stack = [node];
-  while (stack.length) {
-    const n = stack.shift();
-    const p = vaultPath(n.data);
-    if (p) return p.split("/").slice(0, node.slugSegments.length).join("/");
-    stack.push(...n.children);
-  }
-  return undefined;
 }
 
 // Render generation to prevent race conditions

@@ -127,6 +127,28 @@ describe("sort option", () => {
     ]);
   });
 
+  it("dates a folder by its newest page when an older page comes first", () => {
+    const plain = folder("Plain", [
+      file("old", { date: "2024-01-01" }),
+      file("new", { date: "2026-01-01" }),
+      file("undated"),
+    ]);
+    const loose = file("Loose", { date: "2025-06-01" });
+    expect(names(sorted([loose, plain], [{ by: "date", direction: "desc" }]))).toEqual([
+      "Plain",
+      "Loose",
+    ]);
+  });
+
+  it("reads dates given as timestamps", () => {
+    const nodes = [
+      file("later", { date: Date.UTC(2026, 0, 1) }),
+      file("earlier", { date: Date.UTC(2025, 0, 1) }),
+      file("invalid", { date: Number.NaN }),
+    ];
+    expect(names(sorted(nodes, ["date"]))).toEqual(["earlier", "later", "invalid"]);
+  });
+
   it("sorts untagged pages (tags: []) after tagged ones in either direction", () => {
     const nodes = [file("A", { tags: ["b"] }), file("B", { tags: [] }), file("C", { tags: ["a"] })];
     expect(names(sorted(nodes, ["tag"]))).toEqual(["C", "A", "B"]);

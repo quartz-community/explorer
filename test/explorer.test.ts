@@ -143,3 +143,31 @@ describe("Explorer phone header button", () => {
     expect(mobileLabel({})).toBe("Explorer");
   });
 });
+
+describe("Explorer markup for several explorers", () => {
+  it("gives each explorer's list its own id, which its phone button controls", () => {
+    const ids = [Explorer({}), Explorer({})].map((component) => {
+      const tree = render(component);
+      const content = find(tree, (props) => props.class === "explorer-content")!;
+      const button = find(tree, (props) => props["data-mobile"] === true)!;
+      expect(button["aria-controls"]).toBe(content.id);
+      return content.id as string;
+    });
+    expect(ids[0]).toMatch(/^explorer-\d+$/);
+    expect(ids[1]).not.toBe(ids[0]);
+  });
+});
+
+describe("Explorer default data functions (run by the explorer script)", () => {
+  const fns = () => {
+    const props = find(render(Explorer({})), (p) => typeof p["data-data-fns"] === "string")!;
+    return JSON.parse(props["data-data-fns"] as string) as Record<string, string>;
+  };
+
+  it("leaves out the tags folder and keeps the others", () => {
+    // as the script builds it from the markup
+    const filterFn = new Function("node", "return (" + fns().filterFn + ")(node)");
+    expect(filterFn({ slugSegment: "tags" })).toBe(false);
+    expect(filterFn({ slugSegment: "notes" })).toBe(true);
+  });
+});

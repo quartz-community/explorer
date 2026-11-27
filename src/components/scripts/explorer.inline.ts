@@ -1,10 +1,11 @@
 // @ts-nocheck - Required for inline scripts that run in browser context
-import { simplifySlug, resolveBasePath, slugifyFilePath } from "@quartz-community/utils/path";
+import { simplifySlug, resolveBasePath } from "@quartz-community/utils/path";
 import { processTrie } from "./order";
 import { compileSort } from "./sort";
 import { findRootFolder } from "./root";
 import { eventSlug } from "./slug";
 import { folderVaultPath, vaultPath } from "./vaultPath";
+import { FileTrieNode } from "./trie";
 import {
   STORAGE_KEY,
   folderStartsCollapsed,
@@ -19,93 +20,6 @@ import {
   scrollPositions,
   takeSavedScrollPositions,
 } from "./scroll";
-
-// Simple trie node implementation for client-side
-class FileTrieNode {
-  constructor(segments, data) {
-    this.children = [];
-    this.slugSegments = segments;
-    this.data = data || null;
-    this.isFolder = false;
-    this.fileSegmentHint = null;
-    this.displayNameOverride = undefined;
-  }
-
-  get displayName() {
-    if (this.displayNameOverride !== undefined) return this.displayNameOverride;
-    const nonIndexTitle = this.data?.title === "index" ? undefined : this.data?.title;
-    return nonIndexTitle || this.fileSegmentHint || this.slugSegment || "";
-  }
-
-  set displayName(name) {
-    this.displayNameOverride = name;
-  }
-
-  get slug() {
-    const path = this.slugSegments.join("/");
-    return this.isFolder ? path + "/index" : path;
-  }
-
-  get slugSegment() {
-    return this.slugSegments[this.slugSegments.length - 1] || "";
-  }
-
-  makeChild(path, file) {
-    const fullPath = [...this.slugSegments, path[0]];
-    const child = new FileTrieNode(fullPath, file);
-    this.children.push(child);
-    return child;
-  }
-
-  insert(path, file) {
-    if (path.length === 0) return;
-    this.isFolder = true;
-    const segment = path[0];
-    if (path.length === 1) {
-      if (segment === "index") {
-        if (!this.data) this.data = file;
-      } else {
-        this.makeChild(path, file);
-      }
-    } else {
-      let child = this.children.find((c) => c.slugSegment === segment);
-      if (!child) {
-        child = this.makeChild(path, undefined);
-      }
-      const fileParts = (file.filePath || file.slug || "").split("/");
-      child.fileSegmentHint = fileParts[fileParts.length - path.length];
-      child.insert(path.slice(1), file);
-    }
-  }
-
-  add(file) {
-    // Place a page by its file path, link to it by its slug: a note with a permalink (published
-    // somewhere else) stays in its folder, as in Obsidian Publish.
-    const position = file.filePath ? slugifyFilePath(file.filePath) : file.slug;
-    this.insert(position.split("/"), file);
-  }
-
-  sort(sortFn) {
-    this.children.sort(sortFn);
-    this.children.forEach((c) => c.sort(sortFn));
-  }
-
-  filter(filterFn) {
-    this.children = this.children.filter(filterFn);
-    this.children.forEach((c) => c.filter(filterFn));
-  }
-
-  map(mapFn) {
-    mapFn(this);
-    this.children.forEach((c) => c.map(mapFn));
-  }
-
-  static fromEntries(entries) {
-    const trie = new FileTrieNode([], null);
-    entries.forEach(([, entry]) => trie.add(entry));
-    return trie;
-  }
-}
 
 const defaultFilterFn = (node) => node.slugSegment !== "tags";
 

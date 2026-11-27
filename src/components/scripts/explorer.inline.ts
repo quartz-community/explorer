@@ -5,6 +5,13 @@ import { compileSort } from "./sort";
 import { findRootFolder } from "./root";
 import { eventSlug } from "./slug";
 import {
+  STORAGE_KEY,
+  folderStartsCollapsed,
+  folderStateOptions,
+  readFolderStates,
+  writeFolderState,
+} from "./state";
+import {
   clearList,
   restoreScrollPosition,
   saveScrollPositions,
@@ -170,7 +177,7 @@ function syncCollapsed(folderContainer) {
   folderContainer.querySelector(".folder-icon")?.classList.toggle("is-collapsed", collapsed);
 }
 
-/** Open or close a folder and remember its state. */
+/** Open or close a folder and remember its state (unless `useSavedState` is off). */
 function toggleFolder(folderContainer) {
   const childFolderContainer = folderContainer?.nextElementSibling;
   if (!childFolderContainer) return;
@@ -178,14 +185,18 @@ function toggleFolder(folderContainer) {
   syncCollapsed(folderContainer);
   const isCollapsed = !childFolderContainer.classList.contains("open");
   const folderPath = folderContainer.dataset.folderpath;
-  const savedState = JSON.parse(localStorage.getItem("fileTree") || "[]");
-  const existingIndex = savedState.findIndex((item) => item.path === folderPath);
-  if (existingIndex >= 0) {
-    savedState[existingIndex].collapsed = isCollapsed;
-  } else {
-    savedState.push({ path: folderPath, collapsed: isCollapsed });
+  const { useSavedState } = folderStateOptions(folderContainer.closest(".explorer")?.dataset ?? {});
+  try {
+    const next = writeFolderState(
+      localStorage.getItem(STORAGE_KEY),
+      useSavedState,
+      folderPath,
+      isCollapsed,
+    );
+    if (next !== null) localStorage.setItem(STORAGE_KEY, next);
+  } catch (e) {
+    console.error("[Explorer] Error saving folder state:", e);
   }
-  localStorage.setItem("fileTree", JSON.stringify(savedState));
 }
 
 /** Whether a theme hid or covered the collapse icon (as themes with folder icons may). */
@@ -239,7 +250,7 @@ function renderTree(
   container,
   currentSlug,
   folderBehavior,
-  savedState,
+  folderState,
   pathPrefix = "",
   templates,
 ) {
@@ -280,8 +291,12 @@ function renderTree(
       folderButton = folderLink;
     }
 
-    // Check saved state for collapsed status
-    const isCollapsed = savedState[node.slug] !== undefined ? savedState[node.slug] : true; // Default collapsed
+    // the remembered state, else `folderDefaultState`
+    const isCollapsed = folderStartsCollapsed(
+      folderState.states,
+      node.slug,
+      folderState.folderDefaultState,
+    );
 
     // if this folder is a prefix of the current path we want to open it anyways
     const simpleFolderPath = simplifySlug(node.slug);
@@ -302,7 +317,7 @@ function renderTree(
           contentUl,
           currentSlug,
           folderBehavior,
-          savedState,
+          folderState,
           currentPath,
           templates,
         );
@@ -339,12 +354,9 @@ async function handleNavOrRender(e) {
         ? scrollPositions(Array.from(allExplorers, (x) => x.querySelector(".explorer-ul")))
         : takeSavedScrollPositions();
 
-    const savedState = {};
+    let storedFolderStates = null;
     try {
-      const saved = JSON.parse(localStorage.getItem("fileTree") || "[]");
-      saved.forEach((item) => {
-        savedState[item.path] = item.collapsed;
-      });
+      storedFolderStates = localStorage.getItem(STORAGE_KEY);
     } catch (e) {
       console.error("[Explorer] Error loading saved state:", e);
     }
@@ -363,6 +375,11 @@ async function handleNavOrRender(e) {
       // Get data functions configuration
       const dataFns = explorer.dataset.dataFns;
       const folderBehavior = explorer.dataset.behavior || "collapse";
+      const { folderDefaultState, useSavedState } = folderStateOptions(explorer.dataset);
+      const folderState = {
+        states: readFolderStates(storedFolderStates, useSavedState),
+        folderDefaultState,
+      };
       const templates = {
         folder: explorer.querySelector("template.template-folder"),
         file: explorer.querySelector("template.template-file"),
@@ -379,7 +396,7 @@ async function handleNavOrRender(e) {
 
           const tree = document.createDocumentFragment();
           for (const child of trie.children) {
-            renderTree(child, tree, currentSlug, folderBehavior, savedState, "", templates);
+            renderTree(child, tree, currentSlug, folderBehavior, folderState, "", templates);
           }
           end.before(tree);
         } else {

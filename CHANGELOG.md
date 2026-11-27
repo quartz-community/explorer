@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.4
+
+### Patch Changes
+
+- 6a7df6a: Folder rows keep the folder's vault path as `data-path` (`Notes/Daily Notes`, as in Obsidian) when the folder-page plugin is enabled, instead of its slug (`notes/daily-notes`).
+
 ## 1.2.3
 
 ### Patch Changes

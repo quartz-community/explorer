@@ -25,6 +25,18 @@ describe("rootFolder", () => {
     expect(rootFolderSegments(undefined)).toEqual([]);
   });
 
+  it("keeps folders named index, or starting with it", () => {
+    expect(rootFolderSegments("Index Notes")).toEqual(["index-notes"]);
+    expect(rootFolderSegments("Notes/Index")).toEqual(["notes", "index"]);
+    expect(rootFolderSegments("//Notes//")).toEqual(["notes"]);
+  });
+
+  it("prefers the folder whose slug matches exactly over one differing in case", () => {
+    const lower = folder("projects");
+    const upper = folder("Projects");
+    expect(findRootFolder(folder("", [upper, lower]), "projects")).toBe(lower);
+  });
+
   it("finds the folder to show", () => {
     expect(findRootFolder(trie, "Notes")).toBe(notes);
     expect(findRootFolder(trie, "Notes/Daily Notes")).toBe(daily);

@@ -72,6 +72,18 @@ describe("readFolderStates", () => {
   });
 });
 
+describe("readFolderStates with foreign entries", () => {
+  it("skips entries that are not a folder path with a collapsed flag", () => {
+    const raw = JSON.stringify([
+      null,
+      { path: 1, collapsed: true },
+      { path: "a/index", collapsed: "yes" },
+      { path: "b/index", collapsed: false },
+    ]);
+    expect([...readFolderStates(raw, true)]).toEqual([["b/index", false]]);
+  });
+});
+
 describe("writeFolderState", () => {
   it("updates a remembered folder and adds a new one", () => {
     expect(JSON.parse(writeFolderState(stored, true, "notes/index", true)!)).toEqual([

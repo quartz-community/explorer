@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.5
+
+### Patch Changes
+
+- 213b75b: A page beside a folder of the same name (`notes.md` and `notes/`) is shown next to the folder, as in Obsidian, instead of disappearing into it when the site lists it before the folder's pages.
+
 ## 1.2.4
 
 ### Patch Changes
